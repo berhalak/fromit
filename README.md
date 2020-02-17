@@ -1,2 +1,6 @@
-# ts-template
-Typescript package template
+# linq
+
+Linq style using generators
+
+npm install @berhalak/linq
+
