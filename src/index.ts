@@ -2,10 +2,8 @@
 type Selector<T, M> = (item: T) => M;
 type Filter<T> = (item: T) => boolean;
 
-export class Iter<T> {
-    iter(): Generator<T> {
-        throw new Error();
-    }
+export abstract class Iter<T> {
+    abstract iter(): Generator<T>;
 
     map<M>(selector: Selector<T, M>): Iter<M> {
         return new Mapped(this, selector);
@@ -52,11 +50,99 @@ export class Iter<T> {
     toArray(): T[] {
         return [...this.iter()];
     }
+
+
+    except(iter: T[]): Iter<T>
+    except(iter: Iter<T>): Iter<T>
+    except(any: any): Iter<T> {
+        if (any instanceof Iter) {
+            return new Except(this, any);
+        } else {
+            return new Except(this, from(any));
+        }
+    }
+
+    union(iter: T[]): Iter<T>
+    union(iter: Iter<T>): Iter<T>
+    union(any: any): Iter<T> {
+        if (any instanceof Iter) {
+            return new Union(this, any);
+        } else {
+            return new Union(this, from(any));
+        }
+    }
+
+    intersect(iter: T[]): Iter<T>
+    intersect(iter: Iter<T>): Iter<T>
+    intersect(any: any): Iter<T> {
+        if (any instanceof Iter) {
+            return new Intersect(this, any);
+        } else {
+            return new Intersect(this, from(any));
+        }
+    }
+}
+
+class Except<T> extends Iter<T> {
+
+    constructor(private list: Iter<T>, private other: Iter<T>) {
+        super();
+    }
+
+    *iter() {
+        const hash = new Set<T>();
+        for (let item of this.other.iter()) {
+            hash.add(item);
+        }
+        for (let item of this.list.iter()) {
+            if (!hash.has(item)) {
+                yield item;
+            }
+        }
+    }
 }
 
 
 
-export class Where<T> extends Iter<T> {
+class Union<T> extends Iter<T> {
+
+    constructor(private list: Iter<T>, private other: Iter<T>) {
+        super();
+    }
+
+    *iter() {
+        const hash = new Set<T>();
+        for (let item of this.list.iter()) {
+            hash.add(item);
+            yield item;
+        }
+        for (let item of this.other.iter()) {
+            if (!hash.has(item)) {
+                yield item;
+            }
+        }
+    }
+}
+
+class Intersect<T> extends Iter<T> {
+
+    constructor(private list: Iter<T>, private other: Iter<T>) {
+        super();
+    }
+
+    *iter() {
+        for (let item of this.list.iter()) {
+            for (let o of this.other.iter()) {
+                if (item == o) {
+                    yield item;
+                    break;
+                }
+            }
+        }
+    }
+}
+
+class Where<T> extends Iter<T> {
 
     constructor(private list: Iter<T>, private filter: Filter<T>) {
         super();
@@ -69,13 +155,9 @@ export class Where<T> extends Iter<T> {
             }
         }
     }
-
-    toArray(): T[] {
-        return [...this.iter()];
-    }
 }
 
-export class Many<T, M> extends Iter<M> {
+class Many<T, M> extends Iter<M> {
 
     constructor(private list: Iter<T>, private selector: Selector<T, M[]>) {
         super();
@@ -93,7 +175,7 @@ export class Many<T, M> extends Iter<M> {
 
 
 
-export class Mapped<T, M> extends Iter<M> {
+class Mapped<T, M> extends Iter<M> {
 
     constructor(private list: Iter<T>, private selector: Selector<T, M>) {
         super();
@@ -106,7 +188,7 @@ export class Mapped<T, M> extends Iter<M> {
     }
 }
 
-export class From<T> extends Iter<T> {
+class From<T> extends Iter<T> {
 
     constructor(private list: T[]) {
         super();
