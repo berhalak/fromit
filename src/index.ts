@@ -4,9 +4,9 @@ type Filter<T> = (item: T) => boolean;
 
 abstract class Enumerable<T> implements Iterable<T> {
 
-    abstract [Symbol.iterator]();
+    abstract [Symbol.iterator](): IterableIterator<T>;
 
-    iterator() {
+    iterator(): IterableIterator<T> {
         return this[Symbol.iterator]();
     }
 
@@ -22,13 +22,13 @@ abstract class Enumerable<T> implements Iterable<T> {
         return new Many(this, selector);
     }
 
-    first() {
+    first(): T {
         for (let item of this) {
             return item;
         }
     }
 
-    last() {
+    last(): T {
         let last = null;
         for (let item of this) {
             last = item;
