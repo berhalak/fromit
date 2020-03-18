@@ -2,23 +2,23 @@
 type Selector<T, M> = (item: T) => M;
 type Filter<T> = (item: T) => boolean;
 
-export interface Iter<T> {
-    [Symbol.iterator](): IterableIterator<T>;
-}
-
-export abstract class Iterable<T> implements Iter<T> {
+abstract class Enumerable<T> implements Iterable<T> {
 
     abstract [Symbol.iterator]();
 
-    map<M>(selector: Selector<T, M>): Iterable<M> {
+    iterator() {
+        return this[Symbol.iterator]();
+    }
+
+    map<M>(selector: Selector<T, M>): Enumerable<M> {
         return new Mapped(this, selector);
     }
 
-    where(filter: Filter<T>): Iterable<T> {
+    where(filter: Filter<T>): Enumerable<T> {
         return new Where(this, filter);
     }
 
-    many<M>(selector: Selector<T, M[]>): Iterable<M> {
+    many<M>(selector: Selector<T, M[]>): Enumerable<M> {
         return new Many(this, selector);
     }
 
@@ -64,23 +64,23 @@ export abstract class Iterable<T> implements Iter<T> {
     }
 
 
-    except(iter: Iter<T>): Iterable<T> {
+    except(iter: Iterable<T>): Enumerable<T> {
         return new Except(this, iter);
     }
 
-    union(iter: Iter<T>): Iterable<T> {
+    union(iter: Iterable<T>): Enumerable<T> {
         return new Union(this, iter);
 
     }
 
-    intersect(iter: Iter<T>): Iterable<T> {
+    intersect(iter: Iterable<T>): Enumerable<T> {
         return new Intersect(this, iter);
     }
 }
 
-class Except<T> extends Iterable<T> {
+class Except<T> extends Enumerable<T> {
 
-    constructor(private list: Iter<T>, private other: Iter<T>) {
+    constructor(private list: Iterable<T>, private other: Iterable<T>) {
         super();
     }
 
@@ -99,9 +99,9 @@ class Except<T> extends Iterable<T> {
 
 
 
-class Union<T> extends Iterable<T> {
+class Union<T> extends Enumerable<T> {
 
-    constructor(private list: Iter<T>, private other: Iter<T>) {
+    constructor(private list: Iterable<T>, private other: Iterable<T>) {
         super();
     }
 
@@ -119,9 +119,9 @@ class Union<T> extends Iterable<T> {
     }
 }
 
-class Intersect<T> extends Iterable<T> {
+class Intersect<T> extends Enumerable<T> {
 
-    constructor(private list: Iter<T>, private other: Iter<T>) {
+    constructor(private list: Iterable<T>, private other: Iterable<T>) {
         super();
     }
 
@@ -137,9 +137,9 @@ class Intersect<T> extends Iterable<T> {
     }
 }
 
-class Where<T> extends Iterable<T> {
+class Where<T> extends Enumerable<T> {
 
-    constructor(private list: Iter<T>, private filter: Filter<T>) {
+    constructor(private list: Iterable<T>, private filter: Filter<T>) {
         super();
     }
 
@@ -152,9 +152,9 @@ class Where<T> extends Iterable<T> {
     }
 }
 
-class Many<T, M> extends Iterable<M> {
+class Many<T, M> extends Enumerable<M> {
 
-    constructor(private list: Iter<T>, private selector: Selector<T, M[]>) {
+    constructor(private list: Iterable<T>, private selector: Selector<T, M[]>) {
         super();
     }
 
@@ -170,9 +170,9 @@ class Many<T, M> extends Iterable<M> {
 
 
 
-class Mapped<T, M> extends Iterable<M> {
+class Mapped<T, M> extends Enumerable<M> {
 
-    constructor(private list: Iter<T>, private selector: Selector<T, M>) {
+    constructor(private list: Iterable<T>, private selector: Selector<T, M>) {
         super();
     }
 
@@ -183,9 +183,9 @@ class Mapped<T, M> extends Iterable<M> {
     }
 }
 
-class From<T> extends Iterable<T> {
+class From<T> extends Enumerable<T> {
 
-    constructor(private list: T[]) {
+    constructor(private list: Iterable<T>) {
         super();
     }
 
@@ -197,9 +197,7 @@ class From<T> extends Iterable<T> {
 }
 
 
-function from<T>(arg: Iter<T>): Iterable<T>
-function from<T>(arg: T[]): Iterable<T>
-function from<T>(arg: any): Iterable<T> {
+function from<T>(arg: Iterable<T>): Enumerable<T> {
     return new From(arg);
 }
 
