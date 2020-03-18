@@ -5,6 +5,10 @@ type Filter<T> = (item: T) => boolean;
 export abstract class Iter<T> {
     abstract iter(): Generator<T>;
 
+    [Symbol.iterator]() {
+        return this.iter();
+    }
+
     map<M>(selector: Selector<T, M>): Iter<M> {
         return new Mapped(this, selector);
     }

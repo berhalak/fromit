@@ -38,6 +38,13 @@ test("intersect", async () => {
 	expect(r.count()).toBe(1);
 });
 
+test("iterator", async () => {
+	const a = [1, 2, 3];
+	const b = [...from(a)];
+
+	expect(a).toStrictEqual(b);
+});
+
 
 test("except", async () => {
 	const a = [1, 2, 3];
