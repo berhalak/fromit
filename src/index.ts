@@ -31,6 +31,13 @@ export abstract class Iter<T> {
         return last;
     }
 
+    any() {
+        for (let item of this.iter()) {
+            return true;
+        }
+        return false;
+    }
+
     count() {
         let count = 0;
         for (let item of this.iter()) {

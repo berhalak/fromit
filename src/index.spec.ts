@@ -46,6 +46,8 @@ test("except", async () => {
 	expect(r.count()).toBe(2);
 	r = from(a).except(from(b));
 	expect(r.count()).toBe(2);
+	expect(r.any()).toBeTruthy();
+	expect(from([]).any()).toBeFalsy();
 });
 
 test("union", async () => {
