@@ -22,16 +22,20 @@ abstract class Enumerable<T> implements Iterable<T> {
         return new Many(this, selector);
     }
 
-    first(): T {
+    first(def?: T): T {
         for (let item of this) {
             return item;
         }
+        return def;
     }
 
-    last(): T {
+    last(def?: T): T {
         let last = null;
         for (let item of this) {
             last = item;
+        }
+        if (def !== undefined) {
+            return def;
         }
         return last;
     }
@@ -63,6 +67,12 @@ abstract class Enumerable<T> implements Iterable<T> {
         return [...this];
     }
 
+    forEach(handler: (element: T, index?: number) => void): void {
+        let index = 0;
+        for (let item of this) {
+            handler(item, index++);
+        }
+    }
 
     except(iter: Iterable<T>): Enumerable<T> {
         return new Except(this, iter);

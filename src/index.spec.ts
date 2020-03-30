@@ -75,3 +75,10 @@ test("sum", async () => {
 	const a = [1, 2, 3];
 	expect(from(a).sum()).toBe(6);
 });
+
+test("foreach", async () => {
+	const a = [1, 2, 3];
+	let sum = 0;
+	from(a).forEach(x => sum += x);
+	expect(sum).toBe(6);
+});
