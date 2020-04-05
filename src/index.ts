@@ -10,6 +10,14 @@ abstract class Enumerable<T> implements Iterable<T> {
         return this[Symbol.iterator]();
     }
 
+    orderBy(selector: (arg: T) => any): Enumerable<T> {
+        return new Ordered(this, selector);
+    }
+
+    orderByDesc(selector: (arg: T) => any): Enumerable<T> {
+        return new OrderedDesc(this, selector);
+    }
+
     map<M>(selector: Selector<T, M>): Enumerable<M> {
         return new Mapped(this, selector);
     }
@@ -174,6 +182,48 @@ class Many<T, M> extends Enumerable<M> {
             for (let subItem of sub) {
                 yield subItem;
             }
+        }
+    }
+}
+
+class Ordered<T> extends Enumerable<T> {
+
+    constructor(private list: Iterable<T>, private selector: Selector<T, any>) {
+        super();
+    }
+
+    *[Symbol.iterator]() {
+        let all = [...this.list];
+        all.sort((a, b) => {
+            const valA = this.selector(a);
+            const valB = this.selector(b);
+            if (valA < valB) return -1;
+            if (valA > valB) return 1;
+            return 0;
+        })
+        for (let item of all) {
+            yield item;
+        }
+    }
+}
+
+class OrderedDesc<T> extends Enumerable<T> {
+
+    constructor(private list: Iterable<T>, private selector: Selector<T, any>) {
+        super();
+    }
+
+    *[Symbol.iterator]() {
+        let all = [...this.list];
+        all.sort((a, b) => {
+            const valA = this.selector(a);
+            const valB = this.selector(b);
+            if (valA < valB) return 1;
+            if (valA > valB) return -1;
+            return 0;
+        })
+        for (let item of all) {
+            yield item;
         }
     }
 }
