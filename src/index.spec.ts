@@ -90,3 +90,29 @@ test("ordered", async () => {
 	expect(from(a).orderBy(x => 3 - x).first()).toBe(3);
 	expect(from(a).orderByDesc(x => 3 - x).first()).toBe(1);
 });
+
+test("groupBy", async () => {
+    const a = [{ name : 'a', val: 10}, {name : 'a', val : 20}];
+    
+    const result = from(a).groupBy(a => a.name).toArray();
+
+    expect(result.length).toBe(1);
+    expect(result[0].count()).toBe(2);
+
+    const sum = from(a).groupBy(a => a.name).map(x=> x.sum(y => y.val)).sum(y => y);
+
+    expect(sum).toBe(30);
+});
+
+test("groupBy", async () => {
+    const a = [{ name : 'a', val: 10}, {name : 'a', val : 20}];
+    
+    const result = from(a).groupBy(a => a.name).toArray();
+
+    expect(result.length).toBe(1);
+    expect(result[0].count()).toBe(2);
+
+    const sum = from(a).groupBy(a => a.name).map(x=> x.sum(y => y.val)).sum(y => y);
+
+    expect(sum).toBe(30);
+});

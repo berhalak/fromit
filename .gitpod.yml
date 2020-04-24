@@ -1,0 +1,7 @@
+tasks:
+  - init: yarn install
+
+vscode:
+  extensions:    
+    - vscode-icons-team.vscode-icons@10.0.0:9G2nNF/k04qaOhAogmEuMg==
+    

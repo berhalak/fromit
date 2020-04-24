@@ -1,7 +1,7 @@
 {
 	"name": "@berhalak/linq",
 	"private": false,
-	"version": "0.0.9",
+	"version": "0.0.10",
 	"description": "Typescript linq",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",

@@ -22,6 +22,10 @@ abstract class Enumerable<T> implements Iterable<T> {
         return new Mapped(this, selector);
     }
 
+    groupBy<M>(selector: Selector<T, M>): GroupedEnumerable<T, M> {
+        return new GroupedEnumerable<T, M>(this, selector);
+    }
+
     where(filter: Filter<T>): Enumerable<T> {
         return new Where(this, filter);
     }
@@ -63,10 +67,14 @@ abstract class Enumerable<T> implements Iterable<T> {
         return count;
     }
 
-    sum() {
+    sum(selector?: Selector<T, number>) {
         let sum = 0;
         for (let item of this) {
-            sum += item as any as number;
+            if (selector) {
+                sum += selector(item);
+            } else {
+                sum += item as any as number;
+            }
         }
         return sum;
     }
@@ -93,6 +101,54 @@ abstract class Enumerable<T> implements Iterable<T> {
 
     intersect(iter: Iterable<T>): Enumerable<T> {
         return new Intersect(this, iter);
+    }
+}
+
+class Group<V, K> extends Enumerable<V> {
+
+    constructor(public key: K, private buffer: V[]) {
+        super();
+    }
+
+    *[Symbol.iterator](): IterableIterator<V> {
+        for (let item of this.buffer) {
+            yield item;
+        }
+    }
+
+}
+
+class GroupedEnumerable<V, K> extends Enumerable<Group<V, K>> {
+
+    constructor(private list: Enumerable<V>, private selector: Selector<V, K>) {
+        super();
+    }
+
+    *[Symbol.iterator](): IterableIterator<Group<V, K>> {
+        // we expect list to be ordered - for perfomence reason
+        // as this should be as fast as possible
+        let last: K = null;
+        let has = false;
+        let buffer: V[] = [];
+        for (let item of this.list) {
+            has = true;
+            if (last === null) {
+                last = this.selector(item);
+                buffer.push(item);
+                continue;
+            }
+            let current = this.selector(item);
+            if (current != last) {
+                yield new Group<V, K>(last, buffer);
+                buffer = [item];
+                last = current;
+                continue;
+            }
+            buffer.push(item);
+        }
+        if (has) {
+            yield new Group<V, K>(last, buffer);
+        }
     }
 }
 
