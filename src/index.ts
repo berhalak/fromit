@@ -30,6 +30,14 @@ abstract class Enumerable<T> implements Iterable<T> {
         return new Where(this, filter);
     }
 
+    skip(size: number): Enumerable<T> {
+        return new Skip(this, size);
+    }
+
+    take(size: number): Enumerable<T> {
+        return new Take(this, size);
+    }
+
     many<M>(selector: Selector<T, M[]>): Enumerable<M> {
         return new Many(this, selector);
     }
@@ -206,6 +214,42 @@ class Intersect<T> extends Enumerable<T> {
                     yield item;
                     break;
                 }
+            }
+        }
+    }
+}
+
+class Skip<T> extends Enumerable<T> {
+
+    constructor(private list: Iterable<T>, private size: number) {
+        super();
+    }
+
+    *[Symbol.iterator]() {
+        let iter = -1;
+        for (let item of this.list) {
+            iter++;
+            if (iter >= this.size) {
+                yield item;
+            }
+        }
+    }
+}
+
+class Take<T> extends Enumerable<T> {
+
+    constructor(private list: Iterable<T>, private size: number) {
+        super();
+    }
+
+    *[Symbol.iterator]() {
+        let iter = -1;
+        for (let item of this.list) {
+            iter++;
+            if (iter < this.size) {
+                yield item;
+            } else {
+                break;
             }
         }
     }
