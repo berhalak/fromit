@@ -4,7 +4,7 @@
 
 Linq style using generators
 
-npm install @berhalak/linq
+npm install fromit
 
 ``` ts
 const list = new Set([1, 2, 3]);
