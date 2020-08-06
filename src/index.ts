@@ -60,6 +60,13 @@ abstract class Enumerable<T> implements Iterable<T> {
 		return last;
 	}
 
+	find(filter: Matcher<T>) {
+		for (let item of this) {
+			if (filter(item)) return item;
+		}
+		return undefined;
+	}
+
 	some(filter: Matcher<T>) {
 		for (let item of this) {
 			if (filter(item)) return true;
