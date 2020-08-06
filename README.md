@@ -1,14 +1,14 @@
 [![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/berhalak/linq) 
 
-# linq
+# fromit
 
-Linq style using generators
+Linq style (like in c#) using generators
 
 npm install fromit
 
 ``` ts
 const list = new Set([1, 2, 3]);
-expect(from(list).where(x => x > 2).first()).toBe(3);
+expect(from(list).filter(x => x > 2).first()).toBe(3);
 
 const a = [1, 2, 3];
 const b = [3, 4, 5];

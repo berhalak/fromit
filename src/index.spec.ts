@@ -4,7 +4,7 @@ test("iterators", async () => {
 
 	const t = from([1, 2, 3])
 		.map(x => x + 1)
-		.where(x => x > 2)
+		.filter(x => x > 2)
 		.toArray();
 
 	expect(t).toStrictEqual([3, 4]);
@@ -25,7 +25,7 @@ test("iterators", async () => {
 
 test("iterables", async () => {
 	const list = new Set([1, 2, 3]);
-	expect(from(list).where(x => x > 2).first()).toBe(3);
+	expect(from(list).filter(x => x > 2).first()).toBe(3);
 });
 
 
