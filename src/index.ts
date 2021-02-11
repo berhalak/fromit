@@ -1,3 +1,4 @@
+import { AEnumerable, AFrom } from "./async";
 
 type Selector<T, M> = (item: T) => M;
 type Matcher<T> = (item: T) => boolean;
@@ -371,8 +372,16 @@ class From<T> extends Enumerable<T> {
 }
 
 
-function from<T>(arg: Iterable<T>): Enumerable<T> {
-	return new From(arg);
+
+function from<T>(arg: Iterable<T>): Enumerable<T>
+function from<T>(arg: AsyncIterable<T>): AEnumerable<T>
+function from<T>(arg: any): any {
+	//Symbol.asyncIterator
+	//Symbol.iterator
+	if (Symbol.asyncIterator in arg) {
+		return new AFrom(arg as AsyncIterable<T>);
+	}
+	return new From(arg as Iterable<T>);
 }
 
 export {

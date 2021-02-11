@@ -122,3 +122,20 @@ test("groupBy", async () => {
 
 	expect(sum).toBe(30);
 });
+
+
+
+
+test("async iterable", async () => {
+	
+	async function* generate() {
+		yield 1
+		yield 2
+		yield 3
+	}
+
+	const result = await from(generate()).map(x => x + 1).toArray();
+
+	expect(result).toStrictEqual([2,3,4]);
+	
+});
