@@ -7,6 +7,16 @@ abstract class Enumerable<T> implements Iterable<T> {
 
 	abstract [Symbol.iterator](): IterableIterator<T>;
 
+	async() {
+		const self = this;
+		async function* gen() {
+			for(const i of self) {
+				yield i;
+			}
+		}
+		return from(gen());
+	}
+
 	iterator(): IterableIterator<T> {
 		return this[Symbol.iterator]();
 	}
