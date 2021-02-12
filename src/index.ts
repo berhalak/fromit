@@ -10,7 +10,7 @@ abstract class Enumerable<T> implements Iterable<T> {
 	async() {
 		const self = this;
 		async function* gen() {
-			for(const i of self) {
+			for (const i of self) {
 				yield i;
 			}
 		}
@@ -129,7 +129,10 @@ abstract class Enumerable<T> implements Iterable<T> {
 
 	union(iter: Iterable<T>): Enumerable<T> {
 		return new Union(this, iter);
+	}
 
+	distinct<M>(selector? : Selector<T, M>): Enumerable<T> {
+		return new Distinct(this, selector);
 	}
 
 	intersect(iter: Iterable<T>): Enumerable<T> {
@@ -276,6 +279,25 @@ class Take<T> extends Enumerable<T> {
 			} else {
 				break;
 			}
+		}
+	}
+}
+
+
+class Distinct<T, M> extends Enumerable<T> {
+
+	constructor(private list: Iterable<T>, private selector?: Selector<T, M>) {
+		super();
+	}
+
+	*[Symbol.iterator]() {
+		const hash = new Set();
+		const selector = this.selector || ((x: any) => x)
+		for (let item of this.list) {
+			const value = selector(item);
+			if (hash.has(value)) continue;
+			hash.add(value)
+			yield value;
 		}
 	}
 }

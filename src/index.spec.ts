@@ -110,6 +110,10 @@ test("groupBy", async () => {
 	expect(sum).toBe(30);
 });
 
+test("distinct", async () => {
+	expect(from(['a', 'a']).distinct().count()).toBe(1);
+});
+
 test("groupBy", async () => {
 	const a = [{ name: 'a', val: 10 }, { name: 'a', val: 20 }];
 
