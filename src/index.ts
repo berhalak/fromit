@@ -100,6 +100,13 @@ abstract class Enumerable<T> implements Iterable<T> {
 		return count;
 	}
 
+	includes(element: T, comparer : (a: T, b: T) => boolean = (a,b) => a == b ) : boolean {
+		for(const item of this) {
+			if (comparer(item, element)) return true;
+		}
+		return false;
+	}
+
 	sum(selector?: Selector<T, number>) {
 		let sum = 0;
 		for (let item of this) {

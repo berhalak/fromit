@@ -10,6 +10,13 @@ export abstract class AEnumerable<T> implements AsyncIterable<T> {
 		return this[Symbol.asyncIterator]();
 	}
 
+	async includes(element: T, comparer : (a: T, b: T) => boolean = (a,b) => a == b ) {
+		for await (const item of this) {
+			if (comparer(item, element)) return true;
+		}
+		return false;
+	}
+
 	orderBy(selector: (arg: T) => any): AEnumerable<T> {
 		return new Ordered(this, selector);
 	}

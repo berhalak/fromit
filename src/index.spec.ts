@@ -114,6 +114,11 @@ test("distinct", async () => {
 	expect(from(['a', 'a']).distinct().count()).toBe(1);
 });
 
+test("includes", async () => {
+	expect(from(['a', 'b']).includes('b')).toBeTruthy();
+});
+
+
 test("groupBy", async () => {
 	const a = [{ name: 'a', val: 10 }, { name: 'a', val: 20 }];
 
