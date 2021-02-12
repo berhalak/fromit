@@ -149,5 +149,13 @@ test("async iterable", async () => {
 
 	const result2 = await from([1,2,3]).async().map(x=> x + 1).toArray();
 	expect(result2).toStrictEqual([2,3,4]);
+
+	async function increment(n: number) {
+		return ++n;
+	}
+
+	const result3 = await from(generate()).map(x => increment(x)).toArray();
+	expect(result3).toStrictEqual([2,3,4]);
+
 	
 });

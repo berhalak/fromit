@@ -1,6 +1,6 @@
 
-type Selector<T, M> = (item: T) => M;
-type Matcher<T> = (item: T) => boolean;
+type Selector<T, M> = (item: T) => PromiseLike<M> | M;
+type Matcher<T> = (item: T) => PromiseLike<boolean> | boolean
 
 export abstract class AEnumerable<T> implements AsyncIterable<T> {
 
@@ -100,7 +100,7 @@ export abstract class AEnumerable<T> implements AsyncIterable<T> {
 		let sum = 0;
 		for await (let item of this) {
 			if (selector) {
-				sum += selector(item);
+				sum += await selector(item);
 			} else {
 				sum += item as any as number;
 			}
@@ -164,11 +164,11 @@ class GroupedEnumerable<V, K> extends AEnumerable<Group<V, K>> {
 		for await (let item of this.list) {
 			has = true;
 			if (last === null) {
-				last = this.selector(item);
+				last = await this.selector(item);
 				buffer.push(item);
 				continue;
 			}
-			let current = this.selector(item);
+			let current = await this.selector(item);
 			if (current != last) {
 				yield new Group<V, K>(last, buffer);
 				buffer = [item];
@@ -301,7 +301,7 @@ class Many<T, M> extends AEnumerable<M> {
 
 	async *[Symbol.asyncIterator]() {
 		for await (let item of this.list) {
-			const sub = this.selector(item);
+			const sub = await this.selector(item);
 			for (let subItem of sub) {
 				yield subItem;
 			}
