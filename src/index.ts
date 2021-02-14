@@ -100,8 +100,8 @@ abstract class Enumerable<T> implements Iterable<T> {
 		return count;
 	}
 
-	includes(element: T, comparer : (a: T, b: T) => boolean = (a,b) => a == b ) : boolean {
-		for(const item of this) {
+	includes(element: T, comparer: (a: T, b: T) => boolean = (a, b) => a == b): boolean {
+		for (const item of this) {
 			if (comparer(item, element)) return true;
 		}
 		return false;
@@ -138,7 +138,7 @@ abstract class Enumerable<T> implements Iterable<T> {
 		return new Union(this, iter);
 	}
 
-	distinct<M>(selector? : Selector<T, M>): Enumerable<T> {
+	distinct<M>(selector?: Selector<T, M>): Enumerable<T> {
 		return new Distinct(this, selector);
 	}
 
@@ -411,7 +411,7 @@ class From<T> extends Enumerable<T> {
 }
 
 
-
+function from<T>(arg: Promise<Iterable<T>>): AEnumerable<T>
 function from<T>(arg: Iterable<T>): Enumerable<T>
 function from<T>(arg: AsyncIterable<T>): AEnumerable<T>
 function from<T>(arg: any): any {
@@ -419,6 +419,13 @@ function from<T>(arg: any): any {
 	//Symbol.iterator
 	if (Symbol.asyncIterator in arg) {
 		return new AFrom(arg as AsyncIterable<T>);
+	}
+	if (typeof arg.then == 'function') {
+		async function* generate() {
+			const result = await arg;
+			yield* result;
+		}
+		return new AFrom(generate());
 	}
 	return new From(arg as Iterable<T>);
 }

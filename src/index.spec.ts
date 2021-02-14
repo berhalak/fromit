@@ -133,10 +133,25 @@ test("groupBy", async () => {
 });
 
 
+test("async from", async () => {
+	async function* generator() {
+		yield 1
+		yield 2
+		yield 3
+	}
+
+	async function promise() {
+		return [1, 2, 3]
+	}
+
+	const result1 = from(generator());
+	const result2 = from(promise());
+
+	expect(await result1.toArray()).toStrictEqual(await result2.toArray());
+});
 
 
 test("async iterable", async () => {
-	
 	async function* generate() {
 		yield 1
 		yield 2
@@ -145,17 +160,15 @@ test("async iterable", async () => {
 
 	const result = await from(generate()).map(x => x + 1).toArray();
 
-	expect(result).toStrictEqual([2,3,4]);
+	expect(result).toStrictEqual([2, 3, 4]);
 
-	const result2 = await from([1,2,3]).async().map(x=> x + 1).toArray();
-	expect(result2).toStrictEqual([2,3,4]);
+	const result2 = await from([1, 2, 3]).async().map(x => x + 1).toArray();
+	expect(result2).toStrictEqual([2, 3, 4]);
 
 	async function increment(n: number) {
 		return ++n;
 	}
 
 	const result3 = await from(generate()).map(x => increment(x)).toArray();
-	expect(result3).toStrictEqual([2,3,4]);
-
-	
+	expect(result3).toStrictEqual([2, 3, 4]);
 });
