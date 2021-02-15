@@ -7,6 +7,8 @@ Linq style (like in c#) using generators
 npm install fromit
 
 ``` ts
+import { from } from "fromit"
+
 const list = new Set([1, 2, 3]);
 expect(from(list).filter(x => x > 2).first()).toBe(3);
 
