@@ -91,6 +91,12 @@ test("ordered", async () => {
 	expect(from(a).orderByDesc(x => 3 - x).first()).toBe(1);
 });
 
+test("normal order", async () => {
+	const a = [2, 10];
+	expect(from(a).orderBy(x => x).first()).toBe(2);
+	expect(from(a).orderByDesc(x => x).first()).toBe(10);
+});
+
 test("skip", async () => {
 	const a = [3, 2, 1];
 	expect(from(a).skip(1).first()).toBe(2);
