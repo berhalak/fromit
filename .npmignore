@@ -6,3 +6,5 @@ jest.config.js
 **/run*ts
 dist/run.*
 *.tgz
+.lh
+.gitpod.yml
