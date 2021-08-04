@@ -200,3 +200,23 @@ test("performance", async () => {
 
   expect(fromTime).toBeLessThan(arrayTime);
 });
+
+test("range", async () => {
+  expect(from(0).count()).toBe(0);
+  expect(from(-1).count()).toBe(0);
+  expect(from(1).count()).toBe(1);
+  expect(from(20).count()).toBe(20);
+  expect(from(2).sum()).toBe(1);
+  expect(from(3).sum()).toBe(3);
+  expect(from(0, 1).sum()).toBe(1);
+  expect(from(0, 1).count()).toBe(2);
+  expect(from(0, 2).count()).toBe(3);
+  expect(from(0, 2).sum()).toBe(3);
+  expect(from(0, -1).sum()).toBe(-1);
+  expect(from(0, -1).count()).toBe(2);
+  expect(from(0, 10, 2).count()).toBe(6);
+  expect(from(0, 10, 5).sum()).toBe(15);
+  expect(from(0, 10, 5).count()).toBe(3);
+  expect(from(0, -10, 5).count()).toBe(3);
+  expect(from(0, -10, 5).sum()).toBe(-15);
+});

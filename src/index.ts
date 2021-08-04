@@ -414,13 +414,53 @@ class From<T> extends Enumerable<T> {
 	}
 }
 
-
+function from(length: number): Enumerable<number>
+function from(start: number, end: number): Enumerable<number>
+function from(start: number, end: number, step: number): Enumerable<number>
 function from<T>(arg: Promise<Iterable<T>>): AEnumerable<T>
 function from<T>(arg: Iterable<T>): Enumerable<T>
 function from<T>(arg: AsyncIterable<T>): AEnumerable<T>
-function from<T>(arg: any): any {
-	//Symbol.asyncIterator
-	//Symbol.iterator
+function from<T>(...args: any[]): any {
+  if (typeof args[0] === 'number') {
+    if (args.length === 1) {
+      return from(function*(){
+        for(let i = 0; i < args[0];i++) {
+          yield i;
+        }
+      }());
+    }
+    if (args.length === 2) {
+      if (args[0] < args[1]) {
+        return from(function*(){
+          for(let i = args[0]; i <= args[1];i++) {
+            yield i;
+          }
+        }());
+      } else {
+        return from(function*(){
+          for(let i = args[0]; i >= args[1];i--) {
+            yield i;
+          }
+        }());
+      }
+    }
+    if (args.length === 3) {
+      if (args[0] < args[1]) {
+        return from(function*(){
+          for(let i = args[0]; i <= args[1]; i+= args[2]) {
+            yield i;
+          }
+        }());
+      } else {
+        return from(function*(){
+          for(let i = args[0]; i >= args[1]; i-= args[2]) {
+            yield i;
+          }
+        }());
+      }
+    }
+  }
+  const arg = args[0];
 	if (Symbol.asyncIterator in arg) {
 		return new AFrom(arg as AsyncIterable<T>);
 	}
