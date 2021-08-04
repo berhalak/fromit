@@ -1,4 +1,5 @@
 import { from } from "."
+import { performance } from "perf_hooks"
 
 test("iterators", async () => {
 
@@ -177,4 +178,25 @@ test("async iterable", async () => {
 
 	const result3 = await from(generate()).map(x => increment(x)).toArray();
 	expect(result3).toStrictEqual([2, 3, 4]);
+});
+
+
+test("performance", async () => {
+	const bigArray = new Float32Array(1_000_000);
+
+  let start = performance.now();
+  let result = bigArray.filter(x=> x == 0).map((x,i) => x + i).find(x => x == 3);
+  let end = performance.now();
+  expect(result).toBe(3);
+
+  const arrayTime = end - start;
+
+  start = performance.now();
+  result = from(bigArray).filter(x=> x == 0).map((x,i) => x + i).find(x => x == 3);
+  end = performance.now();
+  expect(result).toBe(3);
+
+  const fromTime = end - start;
+
+  expect(fromTime).toBeLessThan(arrayTime);
 });

@@ -1,6 +1,6 @@
 import { AEnumerable, AFrom } from "./async";
 
-type Selector<T, M> = (item: T) => M;
+type Selector<T, M> = (value: T, index?: number) => M;
 type Matcher<T> = (item: T) => boolean;
 
 abstract class Enumerable<T> implements Iterable<T> {
@@ -173,14 +173,15 @@ class GroupedEnumerable<V, K> extends Enumerable<Group<V, K>> {
 		let last: K = null;
 		let has = false;
 		let buffer: V[] = [];
+    let index = 0;
 		for (let item of this.list) {
 			has = true;
 			if (last === null) {
-				last = this.selector(item);
+				last = this.selector(item, index++);
 				buffer.push(item);
 				continue;
 			}
-			let current = this.selector(item);
+			let current = this.selector(item, index++);
 			if (current != last) {
 				yield new Group<V, K>(last, buffer);
 				buffer = [item];
@@ -300,8 +301,9 @@ class Distinct<T, M> extends Enumerable<T> {
 	*[Symbol.iterator]() {
 		const hash = new Set();
 		const selector = this.selector || ((x: any) => x)
+    let index = 0;
 		for (let item of this.list) {
-			const value = selector(item);
+			const value = selector(item, index++);
 			if (hash.has(value)) continue;
 			hash.add(value)
 			yield value;
@@ -331,8 +333,9 @@ class Many<T, M> extends Enumerable<M> {
 	}
 
 	*[Symbol.iterator]() {
+    let index = 0;
 		for (let item of this.list) {
-			const sub = this.selector(item);
+			const sub = this.selector(item, index++);
 			for (let subItem of sub) {
 				yield subItem;
 			}
@@ -391,8 +394,9 @@ class Mapped<T, M> extends Enumerable<M> {
 	}
 
 	*[Symbol.iterator]() {
+    let index = 0;
 		for (let item of this.list) {
-			yield this.selector(item);
+			yield this.selector(item, index++);
 		}
 	}
 }
