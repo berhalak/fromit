@@ -137,6 +137,10 @@ test("groupBy", async () => {
 	const sum = from(a).groupBy(a => a.name).map(x => x.sum(y => y.val)).sum(y => y);
 
 	expect(sum).toBe(30);
+
+  const b = [{ Name : 'John'}, { Name : 'John' }, {Name : 'Mary'}, { Undefined: true}, { Name : null}];
+  const bG = from(b).groupBy(x=> x.Name).map(x=> x.key).toArray();
+  expect(bG).toStrictEqual(['John', 'Mary', undefined, null]);
 });
 
 

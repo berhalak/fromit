@@ -168,21 +168,19 @@ class GroupedEnumerable<V, K> extends Enumerable<Group<V, K>> {
 	}
 
 	*[Symbol.iterator](): IterableIterator<Group<V, K>> {
-		// we expect list to be ordered - for perfomence reason
-		// as this should be as fast as possible
 		let last: K = null;
-		let has = false;
+		let start = true;
 		let buffer: V[] = [];
     let index = 0;
-		for (let item of this.list) {
-			has = true;
-			if (last === null) {
+		for (let item of this.list.orderBy(this.selector)) {
+			if (start) {
+        start = false;
 				last = this.selector(item, index++);
 				buffer.push(item);
 				continue;
 			}
 			let current = this.selector(item, index++);
-			if (current != last) {
+			if (current !== last) {
 				yield new Group<V, K>(last, buffer);
 				buffer = [item];
 				last = current;
@@ -190,7 +188,7 @@ class GroupedEnumerable<V, K> extends Enumerable<Group<V, K>> {
 			}
 			buffer.push(item);
 		}
-		if (has) {
+		if (buffer.length) {
 			yield new Group<V, K>(last, buffer);
 		}
 	}
