@@ -250,6 +250,18 @@ class Intersect<T> extends AEnumerable<T> {
   }
 }
 
+class Reversed<T> extends AEnumerable<T> {
+
+  constructor(private list: AsyncIterable<T>) {
+    super();
+  }
+
+  async *[Symbol.asyncIterator]() {
+    const list = (await new AFrom(this.list).toArray()).reverse();
+    yield *list;
+  }
+}
+
 
 class Skip<T> extends AEnumerable<T> {
 

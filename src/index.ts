@@ -153,6 +153,10 @@ abstract class Enumerable<T> implements Iterable<T> {
   intersect(iter: Iterable<T>): Enumerable<T> {
     return new Intersect(this, iter);
   }
+
+  reverse(): Enumerable<T> {
+    return new Reversed(this);
+  }
 }
 
 class Group<V, K> extends Enumerable<V> {
@@ -199,6 +203,17 @@ class GroupedEnumerable<V, K> extends Enumerable<Group<V, K>> {
     if (buffer.length) {
       yield new Group<V, K>(last, buffer);
     }
+  }
+}
+
+class Reversed<T> extends Enumerable<T> {
+
+  constructor(private list: Iterable<T>) {
+    super();
+  }
+
+  *[Symbol.iterator]() {
+    yield *[...this.list].reverse();
   }
 }
 
