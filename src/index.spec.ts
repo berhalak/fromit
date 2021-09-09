@@ -104,6 +104,12 @@ test("skip", async () => {
 	expect(from(a).take(2).last()).toBe(2);
 });
 
+test("skipWhile", async () => {
+	const a = [3, 2, 1];
+	expect(from(a).skipWhile(x => x > 1).first()).toBe(1);
+	expect(from(a).takeWhile(x => x > 1).last()).toBe(2);
+});
+
 test("groupBy", async () => {
 	const a = [{ name: 'a', val: 10 }, { name: 'a', val: 20 }];
 

@@ -41,8 +41,16 @@ export abstract class AEnumerable<T> implements AsyncIterable<T> {
     return new Skip(this, size);
   }
 
+  skipWhile(matcher: Matcher<T>): AEnumerable<T> {
+    return new Skip(this, matcher);
+  }
+
   take(size: number): AEnumerable<T> {
     return new Take(this, size);
+  }
+
+  takeWhile(matcher: Matcher<T>): AEnumerable<T> {
+    return new Take(this, matcher);
   }
 
   many<M>(selector: Selector<T, M[]>): AEnumerable<M> {
@@ -242,37 +250,64 @@ class Intersect<T> extends AEnumerable<T> {
   }
 }
 
+
 class Skip<T> extends AEnumerable<T> {
 
-  constructor(private list: AsyncIterable<T>, private size: number) {
+  protected _matcher: Matcher<T>;
+  protected _size?: number;
+
+  constructor(list: AsyncIterable<T>, matcher: Matcher<T>)
+  constructor(list: AsyncIterable<T>, size: number)
+  constructor(protected list: AsyncIterable<T>, arg: any) {
     super();
+    if (typeof (arg) === 'number') {
+      this._size = arg;
+    } else {
+      this._matcher = arg;
+    }
   }
 
   async *[Symbol.asyncIterator]() {
-    let iter = -1;
-    for await (let item of this.list) {
-      iter++;
-      if (iter >= this.size) {
-        yield item;
+    if (this._size !== undefined) {
+      let iter = -1;
+      for await (let item of this.list) {
+        iter++;
+        if (iter >= this._size) {
+          yield item;
+        }
+
+      }
+    } else {
+      let skip = true;
+      for await (let item of this.list) {
+        if (skip) {
+          skip = await this._matcher(item);
+        }
+        if (!skip) {
+          yield item;
+        }
       }
     }
   }
 }
 
-class Take<T> extends AEnumerable<T> {
-
-  constructor(private list: AsyncIterable<T>, private size: number) {
-    super();
-  }
-
+class Take<T> extends Skip<T> {
   async *[Symbol.asyncIterator]() {
-    let iter = -1;
-    for await (let item of this.list) {
-      iter++;
-      if (iter < this.size) {
+    if (this._size !== undefined) {
+      let iter = -1;
+      for await (let item of this.list) {
+        iter++;
+        if (iter < this._size) {
+          yield item;
+        }
+
+      }
+    } else {
+      for await (let item of this.list) {
+        if (!(await this._matcher(item))) {
+          return;
+        }
         yield item;
-      } else {
-        break;
       }
     }
   }
