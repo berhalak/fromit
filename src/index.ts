@@ -1,6 +1,6 @@
 import {AEnumerable, AFrom} from "./async";
 
-type Selector<T, M> = (value: T, index?: number) => M;
+type Selector<T, M = any> = (value: T, index: number) => M;
 type Matcher<T> = (item: T) => boolean;
 
 abstract class Enumerable<T> implements Iterable<T> {
@@ -21,11 +21,15 @@ abstract class Enumerable<T> implements Iterable<T> {
     return this[Symbol.iterator]();
   }
 
-  orderBy(selector: (arg: T) => any): Enumerable<T> {
+  orderBy(selector: Selector<T>): Enumerable<T> {
     return new Ordered(this, selector);
   }
 
-  orderByDesc(selector: (arg: T) => any): Enumerable<T> {
+  chunk(size: number): Enumerable<Enumerable<T>> {
+    return new Chunk(this, size);
+  }
+
+  orderByDesc(selector: Selector<T>): Enumerable<T> {
     return new OrderedDesc(this, selector);
   }
 
@@ -117,9 +121,10 @@ abstract class Enumerable<T> implements Iterable<T> {
 
   sum(selector?: Selector<T, number>) {
     let sum = 0;
+    let index = 0;
     for (let item of this) {
       if (selector) {
-        sum += selector(item);
+        sum += selector(item, index++);
       } else {
         sum += item as any as number;
       }
@@ -213,7 +218,7 @@ class Reversed<T> extends Enumerable<T> {
   }
 
   *[Symbol.iterator]() {
-    yield *[...this.list].reverse();
+    yield* [...this.list].reverse();
   }
 }
 
@@ -399,8 +404,8 @@ class Ordered<T> extends Enumerable<T> {
   *[Symbol.iterator]() {
     let all = [...this.list];
     all.sort((a, b) => {
-      const valA = this.selector(a);
-      const valB = this.selector(b);
+      const valA = this.selector(a, -1);
+      const valB = this.selector(b, -1);
       if (valA < valB) return -1;
       if (valA > valB) return 1;
       return 0;
@@ -420,8 +425,8 @@ class OrderedDesc<T> extends Enumerable<T> {
   *[Symbol.iterator]() {
     let all = [...this.list];
     all.sort((a, b) => {
-      const valA = this.selector(a);
-      const valB = this.selector(b);
+      const valA = this.selector(a, -1);
+      const valB = this.selector(b, -1);
       if (valA < valB) return 1;
       if (valA > valB) return -1;
       return 0;
@@ -432,6 +437,27 @@ class OrderedDesc<T> extends Enumerable<T> {
   }
 }
 
+class Chunk<T> extends Enumerable<Enumerable<T>> {
+
+  constructor(private list: Iterable<T>, private size: number) {
+    super();
+  }
+
+  *[Symbol.iterator]() {
+    let buff: T[] = []
+    for (const item of this.list) {
+      if (buff.length === this.size) {
+        yield from(buff);
+        buff = [item];
+      } else {
+        buff.push(item);
+      }
+    }
+    if (buff.length) {
+      yield from(buff);
+    }
+  }
+}
 
 
 class Mapped<T, M> extends Enumerable<M> {

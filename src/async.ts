@@ -1,5 +1,5 @@
 
-type Selector<T, M> = (item: T, index?: number) => PromiseLike<M> | M;
+type Selector<T, M = any> = (item: T, index: number) => PromiseLike<M> | M;
 type Matcher<T> = (item: T) => PromiseLike<boolean> | boolean
 
 export abstract class AEnumerable<T> implements AsyncIterable<T> {
@@ -17,11 +17,11 @@ export abstract class AEnumerable<T> implements AsyncIterable<T> {
     return false;
   }
 
-  orderBy(selector: (arg: T) => any): AEnumerable<T> {
+  orderBy(selector: Selector<T>): AEnumerable<T> {
     return new Ordered(this, selector);
   }
 
-  orderByDesc(selector: (arg: T) => any): AEnumerable<T> {
+  orderByDesc(selector: Selector<T>): AEnumerable<T> {
     return new OrderedDesc(this, selector);
   }
 
@@ -141,6 +141,33 @@ export abstract class AEnumerable<T> implements AsyncIterable<T> {
 
   intersect(iter: AsyncIterable<T>): AEnumerable<T> {
     return new Intersect(this, iter);
+  }
+
+  chunk(size:number): AEnumerable<AEnumerable<T>> {
+    return new Chunk(this, size);
+  }
+}
+
+
+class Chunk<T> extends AEnumerable<AEnumerable<T>> {
+
+  constructor(private list: AsyncIterable<T>, private size: number) {
+    super();
+  }
+
+  async *[Symbol.asyncIterator]() {
+    let buff: T[] = []
+    for await (const item of this.list) {
+      if (buff.length === this.size) {
+        yield new AList(buff);
+        buff = [item];
+      } else {
+        buff.push(item);
+      }
+    }
+    if (buff.length) {
+      yield new AList(buff);
+    }
   }
 }
 
@@ -367,8 +394,8 @@ class Ordered<T> extends AEnumerable<T> {
     let all = [];
     for await (const i of this.list) all.push(i);
     all.sort((a, b) => {
-      const valA = this.selector(a);
-      const valB = this.selector(b);
+      const valA = this.selector(a, -1);
+      const valB = this.selector(b, -1);
       if (valA < valB) return -1;
       if (valA > valB) return 1;
       return 0;
@@ -381,7 +408,7 @@ class Ordered<T> extends AEnumerable<T> {
 
 class OrderedDesc<T> extends AEnumerable<T> {
 
-  constructor(private list: AsyncIterable<T>, private selector: Selector<T, any>) {
+  constructor(private list: AsyncIterable<T>, private selector: Selector<T>) {
     super();
   }
 
@@ -389,8 +416,8 @@ class OrderedDesc<T> extends AEnumerable<T> {
     let all = [];
     for await (const i of this.list) all.push(i);
     all.sort((a, b) => {
-      const valA = this.selector(a);
-      const valB = this.selector(b);
+      const valA = this.selector(a, -1);
+      const valB = this.selector(b, -1);
       if (valA < valB) return 1;
       if (valA > valB) return -1;
       return 0;
@@ -411,6 +438,19 @@ class Mapped<T, M> extends AEnumerable<M> {
     let index = 0;
     for await (let item of this.list) {
       yield this.selector(item, index++);
+    }
+  }
+}
+
+class AList<T> extends AEnumerable<T> {
+
+  constructor(private list: T[]) {
+    super();
+  }
+
+  async *[Symbol.asyncIterator]() {
+    for (let item of this.list) {
+      yield item;
     }
   }
 }

@@ -135,6 +135,11 @@ test("includes", async () => {
   expect(from(['a', 'b']).includes('b')).toBeTruthy();
 });
 
+test("chunk", async () => {
+  expect(from(10).chunk(1).count()).toBe(10);
+  expect(from(10).chunk(2).count()).toBe(5);
+  expect(from(10).chunk(5).count()).toBe(2);
+});
 
 test("groupBy", async () => {
   const a = [{name: 'a', val: 10}, {name: 'a', val: 20}];
