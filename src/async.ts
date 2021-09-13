@@ -1,6 +1,7 @@
 
 type Selector<T, M = any> = (item: T, index: number) => PromiseLike<M> | M;
 type Matcher<T> = (item: T) => PromiseLike<boolean> | boolean
+type Property<T> = keyof T;
 const identity: Matcher<any> = x => !!x;
 
 export abstract class AEnumerable<T> implements AsyncIterable<T> {
@@ -18,7 +19,16 @@ export abstract class AEnumerable<T> implements AsyncIterable<T> {
     return false;
   }
 
-  orderBy(selector: Selector<T>): AEnumerable<T> {
+  orderBy(): AEnumerable<T>
+  orderBy(property: Property<T>): AEnumerable<T>
+  orderBy(selector: Selector<T>): AEnumerable<T>
+  orderBy(selector?: Selector<T> | Property<T>): AEnumerable<T> {
+    if (!selector) {
+      selector = x => x;
+    }
+    if (typeof(selector) !== 'function') {
+      selector = (item:T) => item[selector as Property<T>];
+    }
     return new Ordered(this, selector);
   }
 
@@ -26,8 +36,13 @@ export abstract class AEnumerable<T> implements AsyncIterable<T> {
     return new OrderedDesc(this, selector);
   }
 
-  map<M>(selector: Selector<T, M>): AEnumerable<M> {
-    return new Mapped(this, selector);
+  map<K extends keyof T>(selector: K): AEnumerable<T[K]>
+  map<M>(selector: Selector<T, M>): AEnumerable<M>
+  map(selector: any) {
+    if (typeof(selector) !== 'function') {
+      selector = (item:T) => item[selector]
+    }
+    return new Mapped(this, selector) as any;
   }
 
   groupBy<M>(selector: Selector<T, M>): GroupedEnumerable<T, M> {

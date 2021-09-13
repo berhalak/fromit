@@ -86,10 +86,17 @@ test("foreach", async () => {
 
 test("ordered", async () => {
   const a = [3, 2, 1];
+  expect(from(a).orderBy().first()).toBe(1);
   expect(from(a).orderBy(x => x).first()).toBe(1);
   expect(from(a).orderByDesc(x => x).first()).toBe(3);
   expect(from(a).orderBy(x => 3 - x).first()).toBe(3);
   expect(from(a).orderByDesc(x => 3 - x).first()).toBe(1);
+});
+
+test("ordered by prop", async () => {
+  const list = [{name: 2}, {name: 1}];
+  const ordered = from(list).orderBy("name");
+  expect(ordered.map("name").first()).toBe(1);
 });
 
 test("normal order", async () => {

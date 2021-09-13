@@ -2,6 +2,7 @@ import {AEnumerable, AFrom} from "./async";
 
 type Selector<T, M = any> = (value: T, index: number) => M;
 type Matcher<T> = (item: T) => boolean;
+type Property<T> = keyof T;
 const identity: Matcher<any> = x => !!x;
 
 abstract class Enumerable<T> implements Iterable<T> {
@@ -22,7 +23,17 @@ abstract class Enumerable<T> implements Iterable<T> {
     return this[Symbol.iterator]();
   }
 
-  orderBy(selector: Selector<T>): Enumerable<T> {
+  orderBy(): Enumerable<T>
+  orderBy(property: Property<T>): Enumerable<T>
+  orderBy(selector: Selector<T>): Enumerable<T>
+  orderBy(selector?: Selector<T> | Property<T>): Enumerable<T> {
+    if (!selector) {
+      selector = x => x;
+    }
+    if (typeof(selector) !== 'function') {
+      const key = selector as Property<T>;
+      selector = (item:T) => item[key];
+    }
     return new Ordered(this, selector);
   }
 
@@ -34,8 +45,14 @@ abstract class Enumerable<T> implements Iterable<T> {
     return new OrderedDesc(this, selector);
   }
 
-  map<M>(selector: Selector<T, M>): Enumerable<M> {
-    return new Mapped(this, selector);
+  map<K extends keyof T>(selector: K): Enumerable<T[K]>
+  map<M>(selector: Selector<T, M>): Enumerable<M>
+  map(selector: any) {
+    if (typeof(selector) !== 'function') {
+      const key = selector as Property<T>;
+      selector = (item:T) => item[key]
+    }
+    return new Mapped(this, selector) as any;
   }
 
   groupBy<M>(selector: Selector<T, M>): GroupedEnumerable<T, M> {
