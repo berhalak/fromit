@@ -1,6 +1,7 @@
 
 type Selector<T, M = any> = (item: T, index: number) => PromiseLike<M> | M;
 type Matcher<T> = (item: T) => PromiseLike<boolean> | boolean
+const identity: Matcher<any> = x => !!x;
 
 export abstract class AEnumerable<T> implements AsyncIterable<T> {
 
@@ -33,8 +34,8 @@ export abstract class AEnumerable<T> implements AsyncIterable<T> {
     return new GroupedEnumerable<T, M>(this, selector);
   }
 
-  filter(matcher: Matcher<T>): AEnumerable<T> {
-    return new Filter(this, matcher);
+  filter(matcher?: Matcher<T>): AEnumerable<T> {
+    return new Filter(this, matcher ?? identity);
   }
 
   skip(size: number): AEnumerable<T> {

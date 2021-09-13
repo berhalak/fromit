@@ -2,6 +2,7 @@ import {AEnumerable, AFrom} from "./async";
 
 type Selector<T, M = any> = (value: T, index: number) => M;
 type Matcher<T> = (item: T) => boolean;
+const identity: Matcher<any> = x => !!x;
 
 abstract class Enumerable<T> implements Iterable<T> {
 
@@ -41,8 +42,8 @@ abstract class Enumerable<T> implements Iterable<T> {
     return new GroupedEnumerable<T, M>(this, selector);
   }
 
-  filter(matcher: Matcher<T>): Enumerable<T> {
-    return new Filter(this, matcher);
+  filter(matcher?: Matcher<T>): Enumerable<T> {
+    return new Filter(this, matcher ?? identity);
   }
 
   skip(size: number): Enumerable<T> {
