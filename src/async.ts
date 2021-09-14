@@ -176,6 +176,38 @@ export abstract class AEnumerable<T> implements AsyncIterable<T> {
   flat<K extends number = 1>(depth?: K): AEnumerable<FlatElement<T, K>> {
     return new Flatten(this, depth);
   }
+
+  zip<K>(other: AsyncIterable<K>): AEnumerable<[T, K]> {
+    const self = this;
+    async function* gen() {
+      const first = self[Symbol.asyncIterator]();
+      const second = other[Symbol.asyncIterator]();
+      while (true) {
+        const a = await first.next();
+        const b = await second.next();
+        if (a.done || b.done) break;
+        yield [a.value, b.value];
+      }
+    }
+    return new AFrom(gen()) as any;
+  }
+
+  concat<K>(iter: AsyncIterable<K>): AEnumerable<T | K> {
+    const self = this;
+    async function* gen() {
+      for await(const item of self){
+        yield item;
+      }
+      for await(const item of iter){
+        yield item;
+      }
+    }
+    return new AFrom(gen()) as any;
+  }
+
+  diff(iter: AsyncIterable<T>): AEnumerable<T> {
+    return this.except(iter).concat(new AFrom(iter).except(this));
+  }
 }
 
 function isIterable(obj: any) {

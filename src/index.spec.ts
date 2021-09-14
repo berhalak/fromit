@@ -262,7 +262,21 @@ test("flat", async () => {
 
   expect(flat3).toStrictEqual([1, 2, 3, 4, 5, 6]);
 
-  const group = from([1,2,1,2,1,2]).groupBy(x=>x);
+  const group = from([1, 2, 1, 2, 1, 2]).groupBy(x => x);
   const flatGroup = group.flat().toArray();
-  expect(flatGroup).toStrictEqual([1,1,1,2,2,2])
+  expect(flatGroup).toStrictEqual([1, 1, 1, 2, 2, 2])
+});
+
+test("zip", async () => {
+  const first = [1, 2, 3];
+  const second = [2, 4];
+  const zipped = from(first).zip(second).toArray();
+  expect(zipped).toStrictEqual([[1, 2], [2, 4]])
+});
+
+test("diff", async () => {
+  const first = [1, 2, 3];
+  const second = [2, 4];
+  const result = from(first).diff(second).toArray();
+  expect(result).toStrictEqual([1, 3, 4])
 });

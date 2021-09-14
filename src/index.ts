@@ -5,10 +5,10 @@ type Matcher<T> = (item: T) => boolean;
 type Property<T> = keyof T;
 const identity: Matcher<any> = x => !!x;
 type FlatElement<Arr, Depth extends number> = {
-    "done": Arr,
-    "recur": Arr extends Iterable<infer InnerArr>
-        ? FlatElement<InnerArr, [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20][Depth]>
-        : Arr
+  "done": Arr,
+  "recur": Arr extends Iterable<infer InnerArr>
+  ? FlatElement<InnerArr, [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20][Depth]>
+  : Arr
 }[Depth extends 0 ? "done" : "recur"];
 
 abstract class Enumerable<T> implements Iterable<T> {
@@ -194,6 +194,34 @@ abstract class Enumerable<T> implements Iterable<T> {
   flat<K extends number = 1>(depth?: K): Enumerable<FlatElement<T, K>> {
     return new Flatten(this, depth);
   }
+
+  zip<K>(other: Iterable<K>): Enumerable<[T, K]> {
+    const self = this;
+    function* gen() {
+      const first = self[Symbol.iterator]();
+      const second = other[Symbol.iterator]();
+      while (true) {
+        const a = first.next();
+        const b = second.next();
+        if (a.done || b.done) break;
+        yield [a.value, b.value];
+      }
+    }
+    return from(gen()) as any;
+  }
+
+  concat<K>(iter: Iterable<K>): Enumerable<T | K> {
+    const self = this;
+    function* gen() {
+      yield* self;
+      yield* iter;
+    }
+    return from(gen()) as any;
+  }
+
+  diff(iter: Iterable<T>): Enumerable<T> {
+    return this.except(iter).concat(from(iter).except(this));
+  }
 }
 
 
@@ -212,8 +240,8 @@ class Group<V, K> extends Enumerable<V> {
 
 
 function isIterable(obj: any) {
-  return obj !== null && obj !== undefined && typeof(obj) !== 'string' && 
-        (obj[Symbol.iterator]);
+  return obj !== null && obj !== undefined && typeof (obj) !== 'string' &&
+    (obj[Symbol.iterator]);
 }
 
 class Flatten<T, K extends number> extends Enumerable<FlatElement<T, K>> {
