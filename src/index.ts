@@ -5,6 +5,12 @@ type Matcher<T> = (item: T) => boolean;
 type Property<T> = keyof T;
 const identity: Matcher<any> = x => !!x;
 
+type FlatElement<Arr, Depth extends number> = {
+  "done": Arr,
+  "recur": Arr extends Array<infer InnerArr>
+  ? FlatElement<InnerArr, [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20][Depth]>
+  : Arr
+}[Depth extends 0 ? "done" : "recur"];
 abstract class Enumerable<T> implements Iterable<T> {
 
   abstract [Symbol.iterator](): IterableIterator<T>;
@@ -30,9 +36,9 @@ abstract class Enumerable<T> implements Iterable<T> {
     if (!selector) {
       selector = x => x;
     }
-    if (typeof(selector) !== 'function') {
+    if (typeof (selector) !== 'function') {
       const key = selector as Property<T>;
-      selector = (item:T) => item[key];
+      selector = (item: T) => item[key];
     }
     return new Ordered(this, selector);
   }
@@ -48,9 +54,9 @@ abstract class Enumerable<T> implements Iterable<T> {
   map<K extends keyof T>(selector: K): Enumerable<T[K]>
   map<M>(selector: Selector<T, M>): Enumerable<M>
   map(selector: any) {
-    if (typeof(selector) !== 'function') {
+    if (typeof (selector) !== 'function') {
       const key = selector as Property<T>;
-      selector = (item:T) => item[key]
+      selector = (item: T) => item[key]
     }
     return new Mapped(this, selector) as any;
   }
@@ -180,7 +186,16 @@ abstract class Enumerable<T> implements Iterable<T> {
   reverse(): Enumerable<T> {
     return new Reversed(this);
   }
+
+  flatDeep() {
+    return this.flat(20);
+  }
+
+  flat<K extends number = 1>(depth?: K): Enumerable<FlatElement<T, K>> {
+    return new Flatten(this, depth);
+  }
 }
+
 
 class Group<V, K> extends Enumerable<V> {
 
@@ -193,7 +208,29 @@ class Group<V, K> extends Enumerable<V> {
       yield item;
     }
   }
+}
 
+
+class Flatten<T, K extends number> extends Enumerable<FlatElement<T, K>> {
+  constructor(private list: Enumerable<T>, private depth?: K) {
+    super();
+    this.depth = depth ?? (1 as any);
+  }
+
+  *[Symbol.iterator](): IterableIterator<FlatElement<T, K>> {
+    for (const item of this.list) {
+      if (Array.isArray(item)) {
+        if (this.depth === 0) {
+          yield item as any;
+        } else {
+          const sub = new Flatten(item as any, this.depth - 1);
+          yield* sub as any;
+        }
+      } else {
+        yield item as any;
+      }
+    }
+  }
 }
 
 class GroupedEnumerable<V, K> extends Enumerable<Group<V, K>> {

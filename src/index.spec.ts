@@ -246,3 +246,19 @@ test("range", async () => {
   expect(from(0, -10, 5).count()).toBe(3);
   expect(from(0, -10, 5).sum()).toBe(-15);
 });
+
+test("flat", async () => {
+  const list = [1, 2, [3, 4]];
+  let flatten = from(list).flat().toArray();
+  expect(flatten).toStrictEqual([1, 2, 3, 4]);
+  expect(from(flatten).flat().toArray()).toStrictEqual([1, 2, 3, 4]);
+
+  const list2 = [1, [2, [3, 4]]];
+  let flatten2 = from(list2).flat(2).toArray();
+  expect(flatten2).toStrictEqual([1, 2, 3, 4]);
+
+  const list3 = [1, [2, [3, [4, [5, 6]]]]];
+  const flat3 = from(list3).flatDeep().toArray();
+
+  expect(flat3).toStrictEqual([1, 2, 3, 4, 5, 6]);
+});
