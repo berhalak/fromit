@@ -4,10 +4,10 @@ type Matcher<T> = (item: T) => PromiseLike<boolean> | boolean
 type Property<T> = keyof T;
 const identity: Matcher<any> = x => !!x;
 type FlatElement<Arr, Depth extends number> = {
-  "done": Arr,
-  "recur": Arr extends Array<infer InnerArr>
-  ? FlatElement<InnerArr, [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20][Depth]>
-  : Arr
+    "done": Arr,
+    "recur": Arr extends AsyncIterable<infer InnerArr>
+        ? FlatElement<InnerArr, [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20][Depth]>
+        : Arr
 }[Depth extends 0 ? "done" : "recur"];
 
 export abstract class AEnumerable<T> implements AsyncIterable<T> {
@@ -178,6 +178,10 @@ export abstract class AEnumerable<T> implements AsyncIterable<T> {
   }
 }
 
+function isIterable(obj: any) {
+  return obj !== null && obj !== undefined && typeof(obj) !== 'string' && 
+        (obj[Symbol.asyncIterator] || obj[Symbol.iterator]);
+}
 
 class Flatten<T, K extends number> extends AEnumerable<FlatElement<T, K>> {
   constructor(private list: AsyncIterable<T>, private depth?: K) {
@@ -187,7 +191,7 @@ class Flatten<T, K extends number> extends AEnumerable<FlatElement<T, K>> {
 
   async *[Symbol.asyncIterator]() {
     for await (const item of this.list) {
-      if (Array.isArray(item)) {
+      if (isIterable(item)) {
         if (this.depth === 0) {
           yield item as any;
         } else {

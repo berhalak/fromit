@@ -4,13 +4,13 @@ type Selector<T, M = any> = (value: T, index: number) => M;
 type Matcher<T> = (item: T) => boolean;
 type Property<T> = keyof T;
 const identity: Matcher<any> = x => !!x;
-
 type FlatElement<Arr, Depth extends number> = {
-  "done": Arr,
-  "recur": Arr extends Array<infer InnerArr>
-  ? FlatElement<InnerArr, [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20][Depth]>
-  : Arr
+    "done": Arr,
+    "recur": Arr extends Iterable<infer InnerArr>
+        ? FlatElement<InnerArr, [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20][Depth]>
+        : Arr
 }[Depth extends 0 ? "done" : "recur"];
+
 abstract class Enumerable<T> implements Iterable<T> {
 
   abstract [Symbol.iterator](): IterableIterator<T>;
@@ -211,6 +211,11 @@ class Group<V, K> extends Enumerable<V> {
 }
 
 
+function isIterable(obj: any) {
+  return obj !== null && obj !== undefined && typeof(obj) !== 'string' && 
+        (obj[Symbol.iterator]);
+}
+
 class Flatten<T, K extends number> extends Enumerable<FlatElement<T, K>> {
   constructor(private list: Enumerable<T>, private depth?: K) {
     super();
@@ -219,7 +224,7 @@ class Flatten<T, K extends number> extends Enumerable<FlatElement<T, K>> {
 
   *[Symbol.iterator](): IterableIterator<FlatElement<T, K>> {
     for (const item of this.list) {
-      if (Array.isArray(item)) {
+      if (isIterable(item)) {
         if (this.depth === 0) {
           yield item as any;
         } else {

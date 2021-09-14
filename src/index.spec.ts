@@ -261,4 +261,8 @@ test("flat", async () => {
   const flat3 = from(list3).flatDeep().toArray();
 
   expect(flat3).toStrictEqual([1, 2, 3, 4, 5, 6]);
+
+  const group = from([1,2,1,2,1,2]).groupBy(x=>x);
+  const flatGroup = group.flat().toArray();
+  expect(flatGroup).toStrictEqual([1,1,1,2,2,2])
 });
