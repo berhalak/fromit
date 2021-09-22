@@ -222,6 +222,10 @@ abstract class Enumerable<T> implements Iterable<T> {
   diff(iter: Iterable<T>): Enumerable<T> {
     return this.except(iter).concat(from(iter).except(this));
   }
+
+  join(separator?: string): string {
+    return this.toArray().join(separator);
+  }
 }
 
 

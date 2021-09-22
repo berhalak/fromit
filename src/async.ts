@@ -208,6 +208,10 @@ export abstract class AEnumerable<T> implements AsyncIterable<T> {
   diff(iter: AsyncIterable<T>): AEnumerable<T> {
     return this.except(iter).concat(new AFrom(iter).except(this));
   }
+
+  async join(separator?: string) {
+    return (await this.toArray()).join(separator);
+  }
 }
 
 function isIterable(obj: any) {
