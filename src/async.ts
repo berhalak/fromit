@@ -75,7 +75,7 @@ export abstract class AEnumerable<T> implements AsyncIterable<T> {
     return new Take(this, matcher);
   }
 
-  many<M>(selector: Selector<T, M[]>): AEnumerable<M> {
+  many<M>(selector: Selector<T, Iterable<M>>): AEnumerable<M> {
     return new Many(this, selector);
   }
 
@@ -464,7 +464,7 @@ class Filter<T> extends AEnumerable<T> {
 
 class Many<T, M> extends AEnumerable<M> {
 
-  constructor(private list: AsyncIterable<T>, private selector: Selector<T, M[]>) {
+  constructor(private list: AsyncIterable<T>, private selector: Selector<T, Iterable<M>>) {
     super();
   }
 

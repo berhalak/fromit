@@ -85,7 +85,7 @@ abstract class Enumerable<T> implements Iterable<T> {
     return new Take(this, matcher);
   }
 
-  many<M>(selector: Selector<T, M[]>): Enumerable<M> {
+  many<M>(selector: Selector<T, Iterable<M>>): Enumerable<M> {
     return new Many(this, selector);
   }
 
@@ -472,7 +472,7 @@ class Filter<T> extends Enumerable<T> {
 
 class Many<T, M> extends Enumerable<M> {
 
-  constructor(private list: Iterable<T>, private selector: Selector<T, M[]>) {
+  constructor(private list: Iterable<T>, private selector: Selector<T, Iterable<M>>) {
     super();
   }
 
