@@ -168,7 +168,7 @@ abstract class Enumerable<T> implements Iterable<T> {
   }
 
   except(iter: Iterable<T>): Enumerable<T>
-  except<M = T>(iter: Iterable<T>, selector: Selector<T, M>)
+  except<M = T>(iter: Iterable<T>, selector: Selector<T, M>): Enumerable<T>
   except<M = T>(iter: Iterable<T>, selector?: Selector<T, M>): Enumerable<T> {
     return new Except(this, iter, selector);
   }
