@@ -167,12 +167,14 @@ abstract class Enumerable<T> implements Iterable<T> {
     }
   }
 
-  except(iter: Iterable<T>): Enumerable<T> {
-    return new Except(this, iter);
+  except(iter: Iterable<T>): Enumerable<T>
+  except<M = T>(iter: Iterable<T>, selector: Selector<T, M>)
+  except<M = T>(iter: Iterable<T>, selector?: Selector<T, M>): Enumerable<T> {
+    return new Except(this, iter, selector);
   }
 
   union(iter: Iterable<T>): Enumerable<T> {
-    return new Union(this, iter);
+    return this.except(iter).concat(iter);
   }
 
   distinct<M>(selector?: Selector<T, M>): Enumerable<T> {
@@ -316,39 +318,20 @@ class Reversed<T> extends Enumerable<T> {
 
 class Except<T> extends Enumerable<T> {
 
-  constructor(private list: Iterable<T>, private other: Iterable<T>) {
+  constructor(private list: Iterable<T>, private other: Iterable<T>, private selector: Selector<T, any>) {
     super();
   }
 
   *[Symbol.iterator]() {
     const hash = new Set<T>();
+    let index = 0;
     for (let item of this.other) {
-      hash.add(item);
+      const key = this.selector ? this.selector(item, index++) : item;
+      hash.add(key);
     }
     for (let item of this.list) {
-      if (!hash.has(item)) {
-        yield item;
-      }
-    }
-  }
-}
-
-
-
-class Union<T> extends Enumerable<T> {
-
-  constructor(private list: Iterable<T>, private other: Iterable<T>) {
-    super();
-  }
-
-  *[Symbol.iterator]() {
-    const hash = new Set<T>();
-    for (let item of this.list) {
-      hash.add(item);
-      yield item;
-    }
-    for (let item of this.other) {
-      if (!hash.has(item)) {
+      const key = this.selector ? this.selector(item, index++) : item;
+      if (!hash.has(key)) {
         yield item;
       }
     }

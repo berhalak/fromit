@@ -1,4 +1,4 @@
-import {from} from "."
+import {from} from "./index"
 import {performance} from "perf_hooks"
 
 test("iterators", async () => {
@@ -279,4 +279,11 @@ test("diff", async () => {
   const second = [2, 4];
   const result = from(first).diff(second).toArray();
   expect(result).toStrictEqual([1, 3, 4])
+});
+
+test("except", async () => {
+  const first = [1, 2, 3];
+  const second = [2, 4];
+  const result = from(first).except(second, x => x).toArray();
+  expect(result).toStrictEqual([1, 3])
 });
