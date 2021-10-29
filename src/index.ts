@@ -29,10 +29,13 @@ abstract class Enumerable<T> implements Iterable<T> {
     return this[Symbol.iterator]();
   }
 
-  orderBy(): Enumerable<T>
+  sort(): Enumerable<T> {
+    return this.orderBy(x => x);
+  }
+  
   orderBy(property: Property<T>): Enumerable<T>
   orderBy(selector: Selector<T>): Enumerable<T>
-  orderBy(selector?: Selector<T> | Property<T>): Enumerable<T> {
+  orderBy(selector: Selector<T> | Property<T>): Enumerable<T> {
     if (!selector) {
       selector = x => x;
     }

@@ -25,13 +25,13 @@ export abstract class AEnumerable<T> implements AsyncIterable<T> {
     return false;
   }
 
-  orderBy(): AEnumerable<T>
+  sort(): AEnumerable<T> {
+    return this.orderBy(x => x);
+  }
+
   orderBy(property: Property<T>): AEnumerable<T>
   orderBy(selector: Selector<T>): AEnumerable<T>
-  orderBy(selector?: Selector<T> | Property<T>): AEnumerable<T> {
-    if (!selector) {
-      selector = x => x;
-    }
+  orderBy(selector: Selector<T> | Property<T>): AEnumerable<T> {
     if (typeof(selector) !== 'function') {
       selector = (item:T) => item[selector as Property<T>];
     }
