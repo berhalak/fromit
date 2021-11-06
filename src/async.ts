@@ -2,7 +2,7 @@
 type Selector<T, M = any> = (item: T, index: number) => PromiseLike<M> | M;
 type Matcher<T> = (item: T) => PromiseLike<boolean> | boolean
 type Property<T> = keyof T;
-const identity: Matcher<any> = x => !!x;
+const truthy: Matcher<any> = x => !!x;
 type FlatElement<Arr, Depth extends number> = {
     "done": Arr,
     "recur": Arr extends AsyncIterable<infer InnerArr>
@@ -63,7 +63,7 @@ export abstract class AEnumerable<T> implements AsyncIterable<T> {
   }
 
   filter(matcher?: Matcher<T>): AEnumerable<T> {
-    return new Filter(this, matcher ?? identity);
+    return new Filter(this, matcher ?? truthy);
   }
 
   skip(size: number): AEnumerable<T> {
