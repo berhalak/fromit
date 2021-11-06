@@ -10,6 +10,7 @@ type FlatElement<Arr, Depth extends number> = {
   ? FlatElement<InnerArr, [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20][Depth]>
   : Arr
 }[Depth extends 0 ? "done" : "recur"];
+type Comparator<T> = (a: T, b: T) => number;
 
 abstract class Enumerable<T> implements Iterable<T> {
 
@@ -29,8 +30,12 @@ abstract class Enumerable<T> implements Iterable<T> {
     return this[Symbol.iterator]();
   }
 
-  sort(): Enumerable<T> {
-    return this.orderBy(x => x);
+  sort(): Enumerable<T>
+  sort(comparator: Comparator<T>): Enumerable<T>
+  sort(comparator?: Comparator<T>): Enumerable<T> {
+    return from((function*(list){
+      yield* [...list].sort(comparator);
+    })(this));
   }
   
   orderBy(property: Property<T>): Enumerable<T>

@@ -9,6 +9,7 @@ type FlatElement<Arr, Depth extends number> = {
         ? FlatElement<InnerArr, [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20][Depth]>
         : Arr
 }[Depth extends 0 ? "done" : "recur"];
+type Comparator<T> = (a: T, b: T) => number;
 
 export abstract class AEnumerable<T> implements AsyncIterable<T> {
 
@@ -25,8 +26,14 @@ export abstract class AEnumerable<T> implements AsyncIterable<T> {
     return false;
   }
 
-  sort(): AEnumerable<T> {
-    return this.orderBy(x => x);
+  sort(): AEnumerable<T>
+  sort(comparator: Comparator<T>): AEnumerable<T>
+  sort(comparator?: Comparator<T>): AEnumerable<T> {
+    const self = this;
+    async function* gen() {
+      yield* (await self.toArray()).sort(comparator);
+    }
+    return new AFrom(gen()) as any;
   }
 
   orderBy(property: Property<T>): AEnumerable<T>

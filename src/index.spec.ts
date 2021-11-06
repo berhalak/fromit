@@ -87,6 +87,7 @@ test("foreach", async () => {
 test("ordered", async () => {
   const a = [3, 2, 1];
   expect(from(a).sort().first()).toBe(1);
+  expect(from(a).sort((a, b) => a - b).first()).toBe(1);
   expect(from(a).orderBy(x => x).first()).toBe(1);
   expect(from(a).orderByDesc(x => x).first()).toBe(3);
   expect(from(a).orderBy(x => 3 - x).first()).toBe(3);
