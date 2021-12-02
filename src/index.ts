@@ -168,11 +168,12 @@ abstract class Enumerable<T> implements Iterable<T> {
     return [...this];
   }
 
-  forEach(handler: (element: T, index?: number) => void): void {
+  forEach(handler: (element: T, index: number) => void) {
     let index = 0;
     for (let item of this) {
       handler(item, index++);
     }
+    return this;
   }
 
   except(iter: Iterable<T>): Enumerable<T>

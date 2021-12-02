@@ -152,11 +152,12 @@ export abstract class AEnumerable<T> implements AsyncIterable<T> {
     return result;
   }
 
-  async forEach(handler: (element: T, index?: number) => any): Promise<void> {
+  async forEach(handler: (element: T, index: number) => any): Promise<AEnumerable<T>> {
     let index = 0;
     for await (let item of this) {
       await handler(item, index++);
     }
+    return this;
   }
 
   except(iter: AsyncIterable<T>): AEnumerable<T> {
