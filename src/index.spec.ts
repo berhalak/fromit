@@ -288,3 +288,13 @@ test("except", async () => {
   const result = from(first).except(second, x => x).toArray();
   expect(result).toStrictEqual([1, 3])
 });
+
+test("reduce", () => {
+  expect(from([1,2,3]).reduce((p, c) => p + c)).toBe(6);
+  expect(from([1,2,3]).reduce((p, c) => p + c, 1)).toBe(7);
+})
+
+test("reduce async", async () => {
+  expect(await from(Promise.resolve([1,2,3])).reduce((p, c) => p + c)).toBe(6);
+  expect(await from(Promise.resolve([1,2,3])).reduce((p, c) => p + c, 1)).toBe(7);
+})

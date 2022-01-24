@@ -237,6 +237,19 @@ abstract class Enumerable<T> implements Iterable<T> {
   join(separator?: string): string {
     return this.toArray().join(separator);
   }
+
+  reduce<R = T>(reducer: (previousValue: R, currentValue: T, currentIndex: number) => R, initial?: R): R {
+    let index = -1;
+    for(const item of this) {
+      index++;
+      if (initial === undefined && index === 0) {
+        initial = item as any;
+        continue;
+      }
+      initial = reducer(initial, item, index);
+    }
+    return initial;
+  }
 }
 
 
@@ -571,6 +584,9 @@ class From<T> extends Enumerable<T> {
   }
 }
 
+/**
+ * Range from 0 to length - 1
+ */
 function from(length: number): Enumerable<number>
 function from(start: number, end: number): Enumerable<number>
 function from(start: number, end: number, step: number): Enumerable<number>

@@ -220,6 +220,19 @@ export abstract class AEnumerable<T> implements AsyncIterable<T> {
   async join(separator?: string) {
     return (await this.toArray()).join(separator);
   }
+
+  async reduce<R = T>(reducer: (previousValue: R, currentValue: T, currentIndex: number) => PromiseLike<R>|R, initial?: PromiseLike<R>|R): Promise<R> {
+    let index = -1;
+    for await(const item of this) {
+      index++;
+      if ((await initial) === undefined && index === 0) {
+        initial = item as any;
+        continue;
+      }
+      initial = await reducer(await initial, item, index);
+    }
+    return initial;
+  }
 }
 
 function isIterable(obj: any) {
