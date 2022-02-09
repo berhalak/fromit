@@ -235,8 +235,34 @@ abstract class Enumerable<T> implements Iterable<T> {
     return this.except(iter).concat(from(iter).except(this));
   }
 
-  join(separator?: string): string {
-    return this.toArray().join(separator);
+  lookup<M>(selector: Selector<T, M>): Map<M, T[]> {
+    const map = new Map();
+    for(const g of this.groupBy(selector)) {
+      map.set(g.key, g.toArray());
+    }
+    return map;
+  }
+
+  join(separator?: string): string;
+  join<M = T>(iter: Iterable<M>, left?: Selector<T, any>, right?: Selector<M, any>): Enumerable<[T, M[]]>;
+  join(...args: any[]): any {
+    if (!args.length || typeof args[0] === 'string') return this.toArray().join(args[0] || '');
+    else {
+      const other = args[0] as Iterable<any>;
+      const left = args[1] as Selector<T, any> || ((x: any) => x);
+      const right = args[2] as Selector<T, any> || left;
+      const self = this;
+      function* gen() {
+        const grouped = from(other).lookup(right);
+        let index = -1;
+        for(const mine of self) {
+          const myKey = left(mine, ++index);
+          if (!grouped.has(myKey)) continue;
+          yield [mine, grouped.get(myKey)];
+        }
+      }
+      return from(gen()) as any;
+    }
   }
 
   reduce<R = T>(reducer: (previousValue: R, currentValue: T, currentIndex: number) => R, initial?: R): R {
@@ -631,17 +657,23 @@ function from<T>(...args: any[]): any {
     }
   }
   const arg = args[0];
-  if (Symbol.asyncIterator in arg) {
-    return new AFrom(arg as AsyncIterable<T>);
-  }
-  if (typeof arg.then == 'function') {
-    async function* generate() {
-      const result = await arg;
-      yield* result;
+  if (typeof arg === 'object') {
+    if (Symbol.asyncIterator in arg) {
+      return new AFrom(arg as AsyncIterable<T>);
     }
-    return new AFrom(generate());
+    if (typeof arg.then == 'function') {
+      async function* generate() {
+        const result = await arg;
+        yield* result;
+      }
+      return new AFrom(generate());
+    }
   }
-  return new From(arg as Iterable<T>);
+  if (arg?.[Symbol.iterator]) {
+    return new From(arg as Iterable<T>);
+  } else {
+    throw new Error(`Argument is not iterable`);
+  }
 }
 
 export {from};

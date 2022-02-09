@@ -298,3 +298,22 @@ test("reduce async", async () => {
   expect(await from(Promise.resolve([1,2,3])).reduce((p, c) => p + c)).toBe(6);
   expect(await from(Promise.resolve([1,2,3])).reduce((p, c) => p + c, 1)).toBe(7);
 })
+
+test("join", async () => {
+  const first = [1, 2, 3];
+  const second = [2, 4];
+  let joined = from(first).join(second).toArray();
+  expect(joined).toStrictEqual([[2, [2]]]);
+
+  joined = from(first).join(second, x => x).toArray();
+  expect(joined).toStrictEqual([[2, [2]]]);
+
+  joined = from(first).join(second, x => x, x => x - 2).toArray();
+  expect(joined).toStrictEqual([[2, [4]]]);
+
+  joined = from(first).join(second, x => 1, x => 0).toArray();
+  expect(joined).toStrictEqual([]);
+
+  joined = from(first).join(second, x => 1, x => 1).toArray();
+  expect(joined).toStrictEqual([[1, second], [2, second], [3, second]]);
+})
