@@ -1,19 +1,18 @@
-import {AEnumerable, AFrom} from "./async";
+import {AEnumerable, AFrom} from './async';
 
 type Selector<T, M = any> = (value: T, index: number) => M;
 type Matcher<T> = (item: T) => boolean;
 type Property<T> = keyof T;
 const identity: Matcher<any> = x => !!x;
 type FlatElement<Arr, Depth extends number> = {
-  "done": Arr,
-  "recur": Arr extends Iterable<infer InnerArr>
-  ? FlatElement<InnerArr, [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20][Depth]>
-  : Arr
-}[Depth extends 0 ? "done" : "recur"];
+  done: Arr;
+  recur: Arr extends Iterable<infer InnerArr>
+    ? FlatElement<InnerArr, [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20][Depth]>
+    : Arr;
+}[Depth extends 0 ? 'done' : 'recur'];
 type Comparator<T> = (a: T, b: T) => number;
 
 abstract class Enumerable<T> implements Iterable<T> {
-
   abstract [Symbol.iterator](): IterableIterator<T>;
 
   async() {
@@ -30,21 +29,23 @@ abstract class Enumerable<T> implements Iterable<T> {
     return this[Symbol.iterator]();
   }
 
-  sort(): Enumerable<T>
-  sort(comparator: Comparator<T>): Enumerable<T>
+  sort(): Enumerable<T>;
+  sort(comparator: Comparator<T>): Enumerable<T>;
   sort(comparator?: Comparator<T>): Enumerable<T> {
-    return from((function*(list){
-      yield* [...list].sort(comparator);
-    })(this));
+    return from(
+      (function* (list) {
+        yield* [...list].sort(comparator);
+      })(this)
+    );
   }
-  
-  orderBy(property: Property<T>): Enumerable<T>
-  orderBy(selector: Selector<T>): Enumerable<T>
+
+  orderBy(property: Property<T>): Enumerable<T>;
+  orderBy(selector: Selector<T>): Enumerable<T>;
   orderBy(selector: Selector<T> | Property<T>): Enumerable<T> {
     if (!selector) {
       selector = x => x;
     }
-    if (typeof (selector) !== 'function') {
+    if (typeof selector !== 'function') {
       const key = selector as Property<T>;
       selector = (item: T) => item[key];
     }
@@ -59,12 +60,12 @@ abstract class Enumerable<T> implements Iterable<T> {
     return new OrderedDesc(this, selector);
   }
 
-  map<K extends keyof T>(selector: K): Enumerable<T[K]>
-  map<M>(selector: Selector<T, M>): Enumerable<M>
+  map<K extends keyof T>(selector: K): Enumerable<T[K]>;
+  map<M>(selector: Selector<T, M>): Enumerable<M>;
   map(selector: any) {
-    if (typeof (selector) !== 'function') {
+    if (typeof selector !== 'function') {
       const key = selector as Property<T>;
-      selector = (item: T) => item[key]
+      selector = (item: T) => item[key];
     }
     return new Mapped(this, selector) as any;
   }
@@ -176,8 +177,8 @@ abstract class Enumerable<T> implements Iterable<T> {
     return this;
   }
 
-  except(iter: Iterable<T>): Enumerable<T>
-  except<M = T>(iter: Iterable<T>, selector: Selector<T, M>): Enumerable<T>
+  except(iter: Iterable<T>): Enumerable<T>;
+  except<M = T>(iter: Iterable<T>, selector: Selector<T, M>): Enumerable<T>;
   except<M = T>(iter: Iterable<T>, selector?: Selector<T, M>): Enumerable<T> {
     return new Except(this, iter, selector);
   }
@@ -190,8 +191,8 @@ abstract class Enumerable<T> implements Iterable<T> {
     return new Distinct(this, selector);
   }
 
-  intersect(iter: Iterable<T>): Enumerable<T> {
-    return new Intersect(this, iter);
+  intersect(iter: Iterable<T>, selector?: Selector<T, any>): Enumerable<T> {
+    return new Intersect(this, iter, selector);
   }
 
   reverse(): Enumerable<T> {
@@ -240,7 +241,7 @@ abstract class Enumerable<T> implements Iterable<T> {
 
   reduce<R = T>(reducer: (previousValue: R, currentValue: T, currentIndex: number) => R, initial?: R): R {
     let index = -1;
-    for(const item of this) {
+    for (const item of this) {
       index++;
       if (initial === undefined && index === 0) {
         initial = item as any;
@@ -252,9 +253,7 @@ abstract class Enumerable<T> implements Iterable<T> {
   }
 }
 
-
 class Group<V, K> extends Enumerable<V> {
-
   constructor(public key: K, private buffer: V[]) {
     super();
   }
@@ -266,10 +265,8 @@ class Group<V, K> extends Enumerable<V> {
   }
 }
 
-
 function isIterable(obj: any) {
-  return obj !== null && obj !== undefined && typeof (obj) !== 'string' &&
-    (obj[Symbol.iterator]);
+  return obj !== null && obj !== undefined && typeof obj !== 'string' && obj[Symbol.iterator];
 }
 
 class Flatten<T, K extends number> extends Enumerable<FlatElement<T, K>> {
@@ -295,7 +292,6 @@ class Flatten<T, K extends number> extends Enumerable<FlatElement<T, K>> {
 }
 
 class GroupedEnumerable<V, K> extends Enumerable<Group<V, K>> {
-
   constructor(private list: Enumerable<V>, private selector: Selector<V, K>) {
     super();
   }
@@ -328,7 +324,6 @@ class GroupedEnumerable<V, K> extends Enumerable<Group<V, K>> {
 }
 
 class Reversed<T> extends Enumerable<T> {
-
   constructor(private list: Iterable<T>) {
     super();
   }
@@ -339,7 +334,6 @@ class Reversed<T> extends Enumerable<T> {
 }
 
 class Except<T> extends Enumerable<T> {
-
   constructor(private list: Iterable<T>, private other: Iterable<T>, private selector: Selector<T, any>) {
     super();
   }
@@ -347,8 +341,9 @@ class Except<T> extends Enumerable<T> {
   *[Symbol.iterator]() {
     const hash = new Set<T>();
     let index = 0;
+    let oIndex = 0;
     for (let item of this.other) {
-      const key = this.selector ? this.selector(item, index++) : item;
+      const key = this.selector ? this.selector(item, oIndex++) : item;
       hash.add(key);
     }
     for (let item of this.list) {
@@ -361,15 +356,19 @@ class Except<T> extends Enumerable<T> {
 }
 
 class Intersect<T> extends Enumerable<T> {
-
-  constructor(private list: Iterable<T>, private other: Iterable<T>) {
+  constructor(private list: Iterable<T>, private other: Iterable<T>, private selector?: Selector<T>) {
     super();
+    this.selector = selector ?? ((x: any) => x);
   }
 
   *[Symbol.iterator]() {
+    let itemIndex = -1;
     for (let item of this.list) {
+      itemIndex++;
+      let otherIndex = -1;
       for (let o of this.other) {
-        if (item == o) {
+        otherIndex++;
+        if (this.selector(item, itemIndex) == this.selector(o, otherIndex)) {
           yield item;
           break;
         }
@@ -379,15 +378,14 @@ class Intersect<T> extends Enumerable<T> {
 }
 
 class Skip<T> extends Enumerable<T> {
-
   protected _matcher: Matcher<T>;
   protected _size?: number;
 
-  constructor(list: Iterable<T>, matcher: Matcher<T>)
-  constructor(list: Iterable<T>, size: number)
+  constructor(list: Iterable<T>, matcher: Matcher<T>);
+  constructor(list: Iterable<T>, size: number);
   constructor(protected list: Iterable<T>, arg: any) {
     super();
-    if (typeof (arg) === 'number') {
+    if (typeof arg === 'number') {
       this._size = arg;
     } else {
       this._matcher = arg;
@@ -402,7 +400,6 @@ class Skip<T> extends Enumerable<T> {
         if (iter >= this._size) {
           yield item;
         }
-
       }
     } else {
       let skip = true;
@@ -427,7 +424,6 @@ class Take<T> extends Skip<T> {
         if (iter < this._size) {
           yield item;
         }
-
       }
     } else {
       for (let item of this.list) {
@@ -440,28 +436,25 @@ class Take<T> extends Skip<T> {
   }
 }
 
-
 class Distinct<T, M> extends Enumerable<T> {
-
   constructor(private list: Iterable<T>, private selector?: Selector<T, M>) {
     super();
   }
 
   *[Symbol.iterator]() {
     const hash = new Set();
-    const selector = this.selector || ((x: any) => x)
+    const selector = this.selector || ((x: any) => x);
     let index = 0;
     for (let item of this.list) {
       const value = selector(item, index++);
       if (hash.has(value)) continue;
-      hash.add(value)
+      hash.add(value);
       yield value;
     }
   }
 }
 
 class Filter<T> extends Enumerable<T> {
-
   constructor(private list: Iterable<T>, private selector: Matcher<T>) {
     super();
   }
@@ -476,7 +469,6 @@ class Filter<T> extends Enumerable<T> {
 }
 
 class Many<T, M> extends Enumerable<M> {
-
   constructor(private list: Iterable<T>, private selector: Selector<T, Iterable<M>>) {
     super();
   }
@@ -493,7 +485,6 @@ class Many<T, M> extends Enumerable<M> {
 }
 
 class Ordered<T> extends Enumerable<T> {
-
   constructor(private list: Iterable<T>, private selector: Selector<T, any>) {
     super();
   }
@@ -506,7 +497,7 @@ class Ordered<T> extends Enumerable<T> {
       if (valA < valB) return -1;
       if (valA > valB) return 1;
       return 0;
-    })
+    });
     for (let item of all) {
       yield item;
     }
@@ -514,7 +505,6 @@ class Ordered<T> extends Enumerable<T> {
 }
 
 class OrderedDesc<T> extends Enumerable<T> {
-
   constructor(private list: Iterable<T>, private selector: Selector<T, any>) {
     super();
   }
@@ -527,7 +517,7 @@ class OrderedDesc<T> extends Enumerable<T> {
       if (valA < valB) return 1;
       if (valA > valB) return -1;
       return 0;
-    })
+    });
     for (let item of all) {
       yield item;
     }
@@ -535,13 +525,12 @@ class OrderedDesc<T> extends Enumerable<T> {
 }
 
 class Chunk<T> extends Enumerable<Enumerable<T>> {
-
   constructor(private list: Iterable<T>, private size: number) {
     super();
   }
 
   *[Symbol.iterator]() {
-    let buff: T[] = []
+    let buff: T[] = [];
     for (const item of this.list) {
       if (buff.length === this.size) {
         yield from(buff);
@@ -556,9 +545,7 @@ class Chunk<T> extends Enumerable<Enumerable<T>> {
   }
 }
 
-
 class Mapped<T, M> extends Enumerable<M> {
-
   constructor(private list: Iterable<T>, private selector: Selector<T, M>) {
     super();
   }
@@ -572,7 +559,6 @@ class Mapped<T, M> extends Enumerable<M> {
 }
 
 class From<T> extends Enumerable<T> {
-
   constructor(private list: Iterable<T>) {
     super();
   }
@@ -587,50 +573,60 @@ class From<T> extends Enumerable<T> {
 /**
  * Range from 0 to length - 1
  */
-function from(length: number): Enumerable<number>
-function from(start: number, end: number): Enumerable<number>
-function from(start: number, end: number, step: number): Enumerable<number>
-function from<T>(arg: Promise<Iterable<T>>): AEnumerable<T>
-function from<T>(arg: Iterable<T>): Enumerable<T>
-function from<T>(arg: AsyncIterable<T>): AEnumerable<T>
-function from(any: any): Enumerable<any>
+function from(length: number): Enumerable<number>;
+function from(start: number, end: number): Enumerable<number>;
+function from(start: number, end: number, step: number): Enumerable<number>;
+function from<T>(arg: Promise<Iterable<T>>): AEnumerable<T>;
+function from<T>(arg: Iterable<T>): Enumerable<T>;
+function from<T>(arg: AsyncIterable<T>): AEnumerable<T>;
+function from(any: any): Enumerable<any>;
 function from<T>(...args: any[]): any {
   if (typeof args[0] === 'number') {
     if (args.length === 1) {
-      return from(function*() {
-        for (let i = 0; i < args[0]; i++) {
-          yield i;
-        }
-      }());
+      return from(
+        (function* () {
+          for (let i = 0; i < args[0]; i++) {
+            yield i;
+          }
+        })()
+      );
     }
     if (args.length === 2) {
       if (args[0] < args[1]) {
-        return from(function*() {
-          for (let i = args[0]; i <= args[1]; i++) {
-            yield i;
-          }
-        }());
+        return from(
+          (function* () {
+            for (let i = args[0]; i <= args[1]; i++) {
+              yield i;
+            }
+          })()
+        );
       } else {
-        return from(function*() {
-          for (let i = args[0]; i >= args[1]; i--) {
-            yield i;
-          }
-        }());
+        return from(
+          (function* () {
+            for (let i = args[0]; i >= args[1]; i--) {
+              yield i;
+            }
+          })()
+        );
       }
     }
     if (args.length === 3) {
       if (args[0] < args[1]) {
-        return from(function*() {
-          for (let i = args[0]; i <= args[1]; i += args[2]) {
-            yield i;
-          }
-        }());
+        return from(
+          (function* () {
+            for (let i = args[0]; i <= args[1]; i += args[2]) {
+              yield i;
+            }
+          })()
+        );
       } else {
-        return from(function*() {
-          for (let i = args[0]; i >= args[1]; i -= args[2]) {
-            yield i;
-          }
-        }());
+        return from(
+          (function* () {
+            for (let i = args[0]; i >= args[1]; i -= args[2]) {
+              yield i;
+            }
+          })()
+        );
       }
     }
   }
@@ -648,6 +644,4 @@ function from<T>(...args: any[]): any {
   return new From(arg as Iterable<T>);
 }
 
-export {
-  from
-}
+export {from};
