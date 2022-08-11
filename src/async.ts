@@ -430,7 +430,6 @@ class Skip<T> extends AEnumerable<T> {
         if (iter >= this._size) {
           yield item;
         }
-
       }
     } else {
       let skip = true;
@@ -449,13 +448,14 @@ class Skip<T> extends AEnumerable<T> {
 class Take<T> extends Skip<T> {
   async *[Symbol.asyncIterator]() {
     if (this._size !== undefined) {
-      let iter = -1;
-      for await (let item of this.list) {
+      let iter = 0;
+      if (this._size <= 0) { return; }
+      for await(let item of this.list) {
         iter++;
-        if (iter < this._size) {
-          yield item;
+        yield item;
+        if (iter >= this._size) {
+          break;
         }
-
       }
     } else {
       for await (let item of this.list) {

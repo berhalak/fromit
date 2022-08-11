@@ -112,6 +112,19 @@ test("skip", async () => {
   expect(from(a).take(2).last()).toBe(2);
 });
 
+test("take", async () => {
+  let flag = false;
+  function* gen() {
+    yield 1;
+    yield 2;
+    flag = true;
+    yield 3;
+  }
+  const two = from(gen()).take(2).toArray();
+  expect(two).toStrictEqual([1, 2]);
+  expect(flag).toBeFalsy();
+});
+
 test("skipWhile", async () => {
   const a = [3, 2, 1];
   expect(from(a).skipWhile(x => x > 1).first()).toBe(1);
@@ -165,6 +178,10 @@ test("groupBy", async () => {
   const bG = from(b).groupBy(x => x.Name).map(x => x.key).toArray();
   expect(bG).toStrictEqual(['John', 'Mary', undefined, null]);
 });
+
+function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 
 test("async from", async () => {
@@ -297,6 +314,20 @@ test("reduce", () => {
 test("reduce async", async () => {
   expect(await from(Promise.resolve([1,2,3])).reduce((p, c) => p + c)).toBe(6);
   expect(await from(Promise.resolve([1,2,3])).reduce((p, c) => p + c, 1)).toBe(7);
+})
+
+test("take async", async () => {
+  async function* gen() {
+    for(let i = 0; i < 10; i++) {
+      await sleep(100);
+      yield i;
+    }
+  }
+  const start = performance.now();
+  const firstTwo = await from(gen()).take(2).toArray();
+  const end = performance.now();
+  expect(firstTwo).toStrictEqual([0, 1]);
+  expect(end - start).toBeLessThan(500);
 })
 
 test("join", async () => {

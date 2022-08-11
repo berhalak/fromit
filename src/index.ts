@@ -444,11 +444,13 @@ class Skip<T> extends Enumerable<T> {
 class Take<T> extends Skip<T> {
   *[Symbol.iterator]() {
     if (this._size !== undefined) {
-      let iter = -1;
+      let iter = 0;
+      if (this._size <= 0) { return; }
       for (let item of this.list) {
         iter++;
-        if (iter < this._size) {
-          yield item;
+        yield item;
+        if (iter >= this._size) {
+          break;
         }
       }
     } else {
@@ -605,7 +607,6 @@ function from(start: number, end: number, step: number): Enumerable<number>;
 function from<T>(arg: Promise<Iterable<T>>): AEnumerable<T>;
 function from<T>(arg: Iterable<T>): Enumerable<T>;
 function from<T>(arg: AsyncIterable<T>): AEnumerable<T>;
-function from(any: any): Enumerable<any>;
 function from<T>(...args: any[]): any {
   if (typeof args[0] === 'number') {
     if (args.length === 1) {
