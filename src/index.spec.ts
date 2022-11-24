@@ -146,6 +146,7 @@ test("groupBy", async () => {
 
 test("distinct", async () => {
   expect(from(['a', 'a']).distinct().count()).toBe(1);
+  expect(from(['ab', 'ad']).distinct(x => x.length).count()).toBe(1);
 });
 
 test("reverse", async () => {
@@ -210,7 +211,6 @@ test("async iterable", async () => {
   }
 
   const result = await from(generate()).map(x => x + 1).toArray();
-
   expect(result).toStrictEqual([2, 3, 4]);
 
   const result2 = await from([1, 2, 3]).async().map(x => x + 1).toArray();
@@ -222,6 +222,9 @@ test("async iterable", async () => {
 
   const result3 = await from(generate()).map(x => increment(x)).toArray();
   expect(result3).toStrictEqual([2, 3, 4]);
+
+  expect(await from(generate()).distinct().count()).toBe(3);
+  expect(await from(generate()).distinct(x => 1).count()).toBe(1);
 });
 
 

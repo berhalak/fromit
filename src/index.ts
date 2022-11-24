@@ -477,7 +477,7 @@ class Distinct<T, M> extends Enumerable<T> {
       const value = selector(item, index++);
       if (hash.has(value)) continue;
       hash.add(value);
-      yield value;
+      yield item;
     }
   }
 }

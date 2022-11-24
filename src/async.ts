@@ -45,6 +45,37 @@ export abstract class AEnumerable<T> implements AsyncIterable<T> {
     return new Ordered(this, selector);
   }
 
+  distinct<M>(selector?: Selector<T, M>): AEnumerable<T> {
+    if (typeof(selector) !== 'function') {
+      const set = new Set();
+      const self = this;
+      async function* gen() {
+        for await(const item of self) {
+          if (!set.has(item)) {
+            set.add(item);
+            yield item;
+          }
+        }
+      }
+      return new AFrom(gen()) as any;
+    } else {
+      const set = new Set();
+      const self = this;
+      async function* gen() {
+        let i = 0;
+        for await(const item of self) {
+          const key = await selector(item, i);
+          i++;
+          if (!set.has(key)) {
+            set.add(key);
+            yield item;
+          }
+        }
+      }
+      return new AFrom(gen()) as any;
+    }
+  }
+
   orderByDesc(selector: Selector<T>): AEnumerable<T> {
     return new OrderedDesc(this, selector);
   }
@@ -166,7 +197,6 @@ export abstract class AEnumerable<T> implements AsyncIterable<T> {
 
   union(iter: AsyncIterable<T>): AEnumerable<T> {
     return new Union(this, iter);
-
   }
 
   intersect(iter: AsyncIterable<T>): AEnumerable<T> {
