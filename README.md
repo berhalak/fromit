@@ -4,7 +4,15 @@
 
 Linq style (like in c#) using generators
 
+```sh
 npm install fromit
+```
+
+Or use directly
+
+```html
+<script src="https://unpkg.com/fromit/dist/fromit.min.js"></script>
+```
 
 ```ts
 import { from } from "fromit";
