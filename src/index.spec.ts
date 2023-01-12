@@ -112,6 +112,12 @@ test("skip", async () => {
   expect(from(a).take(2).last()).toBe(2);
 });
 
+test("reverse group", async () => {
+  const a = [3, 4, 1, 2, 5];
+  expect(from(a).sort().reverse().take(2).reverse().toArray()).toStrictEqual([4, 5]);
+  expect(from(a).sort().reverse().take(2).groupBy(x => x).map(x=> x.key).toArray()).toStrictEqual([5, 4]);
+});
+
 test("take", async () => {
   let flag = false;
   function* gen() {

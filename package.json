@@ -1,7 +1,7 @@
 {
 	"name": "fromit",
 	"private": false,
-	"version": "2.2.10",
+	"version": "2.2.11",
 	"description": "Typescript linq",
 	"main": "dist/index.js",
 	"module": "dist/fromit.mjs",

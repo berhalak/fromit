@@ -1,6 +1,6 @@
 
 type Selector<T, M = any> = (item: T, index: number) => PromiseLike<M> | M;
-type Matcher<T> = (item: T) => PromiseLike<boolean> | boolean
+type Matcher<T> = (item: T, index: number) => PromiseLike<boolean> | boolean
 type Property<T> = keyof T;
 const truthy: Matcher<any> = x => !!x;
 type FlatElement<Arr, Depth extends number> = {
@@ -136,15 +136,17 @@ export abstract class AEnumerable<T> implements AsyncIterable<T> {
   }
 
   async find(filter: Matcher<T>) {
+    let index = 0;
     for await (let item of this) {
-      if (filter(item)) return item;
+      if (filter(item, index++)) return item;
     }
     return undefined;
   }
 
   async some(filter: Matcher<T>) {
+    let index = 0;
     for await (let item of this) {
-      if (filter(item)) return true;
+      if (filter(item, index++)) return true;
     }
     return false;
   }
@@ -463,9 +465,11 @@ class Skip<T> extends AEnumerable<T> {
       }
     } else {
       let skip = true;
+      let index = -1;
       for await (let item of this.list) {
+        index++;
         if (skip) {
-          skip = await this._matcher(item);
+          skip = await this._matcher(item, index);
         }
         if (!skip) {
           yield item;
@@ -488,8 +492,10 @@ class Take<T> extends Skip<T> {
         }
       }
     } else {
+      let index = -1;
       for await (let item of this.list) {
-        if (!(await this._matcher(item))) {
+        index++;
+        if (!(await this._matcher(item, index))) {
           return;
         }
         yield item;
@@ -505,8 +511,9 @@ class Filter<T> extends AEnumerable<T> {
   }
 
   async *[Symbol.asyncIterator]() {
+    let index = 0;
     for await (let item of this.list) {
-      if (this.selector(item)) {
+      if (this.selector(item, index++)) {
         yield item;
       }
     }

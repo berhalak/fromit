@@ -1,7 +1,7 @@
 import {AEnumerable, AFrom} from './async';
 
 type Selector<T, M = any> = (value: T, index: number) => M;
-type Matcher<T> = (item: T) => boolean;
+type Matcher<T> = (item: T, index: number) => boolean;
 type Property<T> = keyof T;
 const identity: Matcher<any> = x => !!x;
 type FlatElement<Arr, Depth extends number> = {
@@ -117,15 +117,17 @@ abstract class Enumerable<T> implements Iterable<T> {
   }
 
   find(filter: Matcher<T>) {
+    let index = 0;
     for (let item of this) {
-      if (filter(item)) return item;
+      if (filter(item, index++)) return item;
     }
     return undefined;
   }
 
   some(filter: Matcher<T>) {
+    let index = 0;
     for (let item of this) {
-      if (filter(item)) return true;
+      if (filter(item, index++)) return true;
     }
     return false;
   }
@@ -280,7 +282,7 @@ abstract class Enumerable<T> implements Iterable<T> {
 }
 
 class Group<V, K> extends Enumerable<V> {
-  constructor(public key: K, private buffer: V[]) {
+  constructor(public key: K, private buffer: Enumerable<V>) {
     super();
   }
 
@@ -323,29 +325,18 @@ class GroupedEnumerable<V, K> extends Enumerable<Group<V, K>> {
   }
 
   *[Symbol.iterator](): IterableIterator<Group<V, K>> {
-    let last: K = null;
-    let start = true;
-    let buffer: V[] = [];
-    let index = 0;
-    for (let item of this.list.orderBy(this.selector)) {
-      if (start) {
-        start = false;
-        last = this.selector(item, index++);
-        buffer.push(item);
-        continue;
-      }
-      let current = this.selector(item, index++);
-      if (current !== last) {
-        yield new Group<V, K>(last, buffer);
-        buffer = [item];
-        last = current;
-        continue;
-      }
-      buffer.push(item);
-    }
-    if (buffer.length) {
-      yield new Group<V, K>(last, buffer);
-    }
+    const seen = new Set<K>;
+    let index = -1;
+    for(const item of this.list) {
+      index++;
+      const key = this.selector(item, index);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      yield new Group(key,
+        from(this.list).skip(index)
+        .filter((item, sub) => this.selector(item, index + sub) === key)
+      );
+    }    
   }
 }
 
@@ -429,9 +420,11 @@ class Skip<T> extends Enumerable<T> {
       }
     } else {
       let skip = true;
+      let index = -1;
       for (let item of this.list) {
+        index++;
         if (skip) {
-          skip = this._matcher(item);
+          skip = this._matcher(item, index);
         }
         if (!skip) {
           yield item;
@@ -454,8 +447,10 @@ class Take<T> extends Skip<T> {
         }
       }
     } else {
+      let index = -1;
       for (let item of this.list) {
-        if (!this._matcher(item)) {
+        index++;
+        if (!this._matcher(item, index)) {
           return;
         }
         yield item;
@@ -488,8 +483,9 @@ class Filter<T> extends Enumerable<T> {
   }
 
   *[Symbol.iterator]() {
+    let index = 0;
     for (let item of this.list) {
-      if (this.selector(item)) {
+      if (this.selector(item, index++)) {
         yield item;
       }
     }
